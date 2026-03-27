@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .auth.router import router as auth_router
+from .connections.router import router as connections_router
 from .control_plane_config import settings
+from .db.bootstrap import create_schema
 from .db.session import prepare_storage_directory
 
 
@@ -34,6 +37,10 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def startup() -> None:
         prepare_storage_directory()
+        create_schema()
+
+    app.include_router(auth_router, prefix="/api")
+    app.include_router(connections_router, prefix="/api")
 
     @app.get("/")
     async def root() -> dict:
