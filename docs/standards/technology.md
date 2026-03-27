@@ -1,38 +1,34 @@
-# Chorus Technology Stack
+# Technology Stack
 
-## Mandatory Partner Technologies
-### Google Cloud Integration (via Gemini Developer API)
-- **Gemini 3 Pro (`gemini-3-pro-preview`)**: Primary conflict prediction engine[citation:10]
-- **Authentication**: API key-based (`GEMINI_API_KEY` environment variable)[citation:3]
-- **SDK**: Google Gen AI Unified SDK (supports both Gemini API and Vertex AI)[citation:2][citation:5]
-- **Hosting**: Google Cloud Run for backend API
+## Active MVP Stack
 
-### Datadog Integration
-- **Datadog APM**: Agent performance monitoring
-- **Datadog Logs**: Centralized logging for all agent interactions
-- **Datadog Dashboards**: Real-time visualization of system health
-- **Datadog Incidents**: Alert management and escalation
+### Backend
 
-### Confluent Cloud
-- **Kafka Topics**:
-  - `agent-messages-raw`: Raw agent communications
-  - `agent-decisions-processed`: Chorus-processed decisions
-  - `system-alerts`: Alert stream for Datadog/ElevenLabs
+- `FastAPI`: API and websocket surface
+- `SQLAlchemy 2.x`: relational data model and persistence
+- `Alembic`: schema migrations
+- `Pydantic` and `pydantic-settings`: schemas and configuration
 
-### ElevenLabs
-- **Text-to-Speech API**: Voice alerts for critical incidents
-- **Real-time Audio Streaming**: <75ms latency for urgent alerts
+### Frontend
 
-## Development Stack
-### Backend (Python Focus)
-```python
-# Core dependencies from requirements.txt
-google-genai>=1.0.0          # Unified Gen AI SDK[citation:2][citation:5]
-confluent-kafka>=2.3         # Confluent integration
-datadog-api-client>=2.25     # Datadog metrics
-elevenlabs>=1.4              # Voice generation
-redis>=5.0                   # Local caching
-networkx>=3.2                # Causal graph analysis
-pydantic>=2.5                # Data validation
-fastapi>=0.104               # API layer
-uvicorn>=0.24                # ASGI server
+- `React 18`
+- `Vite`
+- `TypeScript`
+- `Vitest` and Testing Library
+
+### Runtime Services
+
+- `SQLite`: default local database
+- `Redis`: optional live fanout and ephemeral coordination
+- `Gemini`: optional contextual risk explanation
+
+### Integration Seams
+
+- Auth0-compatible auth adapter
+- Token Vault-compatible access adapter
+- Gmail provider adapter
+- GitHub provider adapter
+
+## Out Of The Default Path
+
+Kafka, Datadog, and ElevenLabs remain in the repository only as historical or experimental integrations. They are not part of the active auth control plane MVP stack.

@@ -1,139 +1,48 @@
-# Environment Variables Reference
+# Environment Variables
 
-This document provides a comprehensive reference for all environment variables used by the Chorus Agent Conflict Predictor system.
+This document covers the active environment variables for the Chorus auth control plane MVP.
 
-## Core Configuration
+## Core Runtime
 
-### Environment Settings
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ENVIRONMENT` | `development` | Runtime environment label exposed through health and meta endpoints. |
+| `DATABASE_URL` | `sqlite:///./data/chorus.db` | Primary relational store for users, agents, actions, approvals, and audit events. |
+| `REDIS_URL` | `redis://localhost:6379/0` | Optional Redis connection for live fanout and ephemeral coordination. |
+| `USE_NEW_ACTION_PIPELINE` | `true` | Enables the auth control plane runtime. |
+| `USE_LEGACY_PIPELINE` | `false` | Keeps the older prediction stack off the default path. |
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_ENVIRONMENT` | Yes | `development` | Deployment environment: `development`, `testing`, `staging`, `production` |
-| `CHORUS_DEBUG` | No | `false` | Enable debug mode with verbose logging |
+## Demo Seeding
 
-## Google Gemini API Configuration
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SEED_DEMO` | `true` | Enables the seeded demo workspace. |
+| `SEED_ON_STARTUP` | `true` | Reseeds the demo workspace on startup for a repeatable local run. |
+| `QUARANTINE_AFTER_BLOCKED_REQUESTS` | `2` | Number of blocked requests before an agent is quarantined. |
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_GEMINI_API_KEY` | Yes | - | Google Gemini API key for conflict prediction |
-| `CHORUS_GEMINI_MODEL` | No | `gemini-3-pro-preview` | Gemini model to use for analysis |
-| `CHORUS_GEMINI_TIMEOUT` | No | `30.0` | API request timeout in seconds |
-| `CHORUS_GEMINI_MAX_RETRIES` | No | `3` | Maximum retry attempts for failed requests |
+## Auth And Vault
 
-## Redis Configuration
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `AUTH_MODE` | `mock` | Authentication mode. Use `mock` locally and `auth0` when wiring a real tenant. |
+| `VAULT_MODE` | `mock` | Token Vault adapter mode. |
+| `PROVIDER_MODE` | `mock` | Provider adapter mode. |
+| `AUTH0_DOMAIN` | unset | Auth0 domain for live auth integration. |
+| `AUTH0_AUDIENCE` | unset | Audience for live Auth0 validation. |
+| `AUTH0_CLIENT_ID` | unset | Client id for the Auth0 application. |
+| `TOKEN_VAULT_AUDIENCE` | unset | Audience for live Token Vault access. |
+| `TOKEN_VAULT_CLIENT_ID` | unset | Token Vault client id. |
+| `TOKEN_VAULT_CLIENT_SECRET` | unset | Token Vault client secret. |
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_REDIS_HOST` | Yes | `localhost` | Redis server hostname or IP address |
-| `CHORUS_REDIS_PORT` | No | `6379` | Redis server port number |
-| `CHORUS_REDIS_PASSWORD` | No | - | Redis authentication password (recommended for production) |
-| `CHORUS_REDIS_DB` | No | `0` | Redis database number (0-15) |
-| `CHORUS_REDIS_POOL_SIZE` | No | `10` | Connection pool size |
+## Risk And LLM
 
-## API Configuration
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | unset | Optional API key for contextual risk explanations. |
+| `GEMINI_MODEL` | `gemini-3-pro-preview` | Gemini model used by the risk adapter. |
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_API_HOST` | No | `0.0.0.0` | API server bind address |
-| `CHORUS_API_PORT` | No | `8000` | API server port number |
-| `CHORUS_API_WORKERS` | No | `1` | Number of API worker processes |
+## Notes
 
-## Agent Simulation Settings
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_MIN_AGENTS` | No | `5` | Minimum number of agents in simulation |
-| `CHORUS_MAX_AGENTS` | No | `10` | Maximum number of agents in simulation |
-| `CHORUS_AGENT_REQUEST_INTERVAL_MIN` | No | `1.0` | Minimum interval between agent requests (seconds) |
-| `CHORUS_AGENT_REQUEST_INTERVAL_MAX` | No | `10.0` | Maximum interval between agent requests (seconds) |
-
-## Trust Scoring Configuration
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_INITIAL_TRUST_SCORE` | No | `100` | Initial trust score for new agents |
-| `CHORUS_TRUST_SCORE_THRESHOLD` | No | `30` | Trust score threshold for quarantine |
-| `CHORUS_TRUST_CONFLICT_PENALTY` | No | `10` | Trust score penalty for conflicts |
-| `CHORUS_TRUST_COOPERATION_BONUS` | No | `1` | Trust score bonus for cooperation |
-
-## Conflict Prediction Settings
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_CONFLICT_RISK_THRESHOLD` | No | `0.7` | Risk threshold for intervention (0.0-1.0) |
-| `CHORUS_PREDICTION_INTERVAL` | No | `5.0` | Prediction interval in seconds |
-| `CHORUS_ANALYSIS_WINDOW` | No | `10` | Number of recent actions to analyze |
-
-## Logging Configuration
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_LOG_LEVEL` | No | `INFO` | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `CHORUS_LOG_STRUCTURED` | No | `true` | Use structured JSON logging |
-| `CHORUS_LOG_FILE_PATH` | No | - | Log file path (if not set, logs to console) |
-
-## Health Check Configuration
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_HEALTH_CHECK_ENABLED` | No | `true` | Enable health monitoring |
-| `CHORUS_HEALTH_CHECK_INTERVAL` | No | `30.0` | Health check interval in seconds |
-
-## Datadog Integration (Optional)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_DATADOG_ENABLED` | No | `false` | Enable Datadog integration |
-| `CHORUS_DATADOG_API_KEY` | No* | - | Datadog API key (*required if enabled) |
-| `CHORUS_DATADOG_APP_KEY` | No* | - | Datadog application key (*required if enabled) |
-| `CHORUS_DATADOG_SITE` | No | `datadoghq.com` | Datadog site (e.g., `datadoghq.eu` for EU) |
-
-## ElevenLabs Integration (Optional)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `CHORUS_ELEVENLABS_ENABLED` | No | `false` | Enable ElevenLabs voice alerts |
-| `CHORUS_ELEVENLABS_API_KEY` | No* | - | ElevenLabs API key (*required if enabled) |
-| `CHORUS_ELEVENLABS_VOICE_ID` | No | `21m00Tcm4TlvDq8ikWAM` | Default voice ID for alerts |
-
-## Confluent Kafka Integration (Optional)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `KAFKA_ENABLED` | No | `false` | Enable Kafka event streaming |
-| `KAFKA_BOOTSTRAP_SERVERS` | No* | `localhost:9092` | Kafka bootstrap servers (*required if enabled) |
-| `KAFKA_AGENT_MESSAGES_TOPIC` | No | `agent-messages-raw` | Topic for raw agent messages |
-
-## Environment-Specific Recommendations
-
-### Development Environment
-```bash
-CHORUS_ENVIRONMENT=development
-CHORUS_DEBUG=true
-CHORUS_LOG_LEVEL=DEBUG
-CHORUS_MIN_AGENTS=3
-CHORUS_MAX_AGENTS=5
-CHORUS_REDIS_HOST=localhost
-CHORUS_DATADOG_ENABLED=false
-```
-
-### Production Environment
-```bash
-CHORUS_ENVIRONMENT=production
-CHORUS_DEBUG=false
-CHORUS_LOG_LEVEL=INFO
-CHORUS_LOG_STRUCTURED=true
-CHORUS_LOG_FILE_PATH=/var/log/chorus/chorus.log
-CHORUS_MIN_AGENTS=10
-CHORUS_MAX_AGENTS=50
-CHORUS_API_WORKERS=4
-CHORUS_REDIS_POOL_SIZE=20
-CHORUS_DATADOG_ENABLED=true
-```
-
-## Security Considerations
-
-1. **Never commit API keys to version control**
-2. **Use strong passwords for Redis in production**
-3. **Restrict Redis access to localhost or private networks**
-4. **Use environment-specific configuration files**
+- In the default seeded demo, mock auth and mock vault behavior are enough to exercise the full approval and quarantine story.
+- If Redis is unavailable, the dashboard still functions; only live websocket fanout degrades.
+- Legacy variables for Kafka, Datadog, trust scoring, and voice alerts may still exist elsewhere in the repository for older experiments, but they are not part of the active auth control plane path.

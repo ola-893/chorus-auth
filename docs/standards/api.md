@@ -1,62 +1,56 @@
-# Chorus API Standards
+# API Standards
 
-## REST Design Principles
-- Use nouns, not verbs, in endpoint paths (e.g., `/agents`, not `/getAgents`).
-- Use HTTP methods explicitly: `GET` (read), `POST` (create), `PUT` (update/replace), `DELETE` (remove).
-- Version the API in the URL path: `/v1/agents`.
-- Return appropriate HTTP status codes.
+The active API surface is the auth control plane API under `/api`.
 
-## Response Format
-All JSON responses follow this envelope format:
-```json
-{
-  "data": { ... }, // The primary response payload
-  "meta": {
-    "timestamp": "2024-01-15T10:30:00Z",
-    "request_id": "req_abc123",
-    "version": "1.0"
-  }
-}```
+## Design Principles
 
-Errors use a separate error object:
+- Use resource-oriented routes.
+- Return explicit lifecycle states such as `pending_approval`, `completed`, or `quarantined`.
+- Prefer human-readable explanations for allow, block, approval, and quarantine outcomes.
+- Keep provider-specific execution details normalized before returning them to the UI.
 
-```json
-{
-  "error": {
-    "code": "CONFLICT_PREDICTION_FAILED",
-    "message": "Failed to predict agent conflicts",
-    "details": { ... }
-  },
-  "meta": { ... }
-}
-```
+## Active Endpoints
 
-## Core Endpoints
+### Identity
 
+- `GET /api/me`
 
-### Agent Communication
+### Connected Accounts
 
--   `POST /v1/messages/process` - Primary endpoint for processing agent messages through the immune system.
+- `GET /api/connections`
+- `POST /api/connections`
 
--   `GET /v1/agents/{id}/trust-score` - Retrieve an agent's current trust score.
+### Agents
 
-### System Monitoring
+- `GET /api/agents`
+- `POST /api/agents`
+- `GET /api/agents/{id}`
+- `POST /api/agents/{id}/capability-grants`
 
--   `GET /v1/system/health` - Health check for the Chorus service and its dependencies (Gemini API, Datadog, etc.).
+### Actions
 
--   `GET /v1/dashboard/metrics` - Aggregate metrics for the React dashboard.
+- `GET /api/actions`
+- `POST /api/actions`
+- `GET /api/actions/{id}`
 
-## Security & Authentication
+### Approvals
 
+- `GET /api/approvals`
+- `POST /api/approvals/{id}/approve`
+- `POST /api/approvals/{id}/reject`
 
--   Internal Agent API: Uses a simple API key header (`X-Agent-API-Key`) validated against an internal store.
+### Audit
 
--   Dashboard/Admin API: Uses JWT tokens for user authentication.
+- `GET /api/audit`
+- `GET /api/audit/{action_id}`
 
--   All endpoints must implement rate limiting based on the client or agent identity.
+### Realtime
 
-Documentation
+- `GET /ws/dashboard`
 
--   Use FastAPI's automatic OpenAPI generation.
+## Error Handling
 
--   Ensure all endpoint parameters, request bodies, and response models are fully documented in the function docstrings.
+- Use standard HTTP status codes.
+- Return `404` when an owned resource does not exist.
+- Return `409` when approval state changes are attempted on already resolved requests.
+- Return explanatory error messages that help the operator recover quickly.

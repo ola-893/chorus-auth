@@ -1,66 +1,33 @@
-# Performance Optimization Guide
+# Performance Guide
 
-## Overview
+The auth control plane MVP favors clarity and reliability over speculative optimization.
 
-This guide details the performance optimization strategies and production readiness implementations for the Chorus system.
+## Current Priorities
 
-## Key Components
+- Fast page hydration for the dashboard
+- Low-latency action request handling for mock provider flows
+- Predictable seeded demo startup
+- Safe fallback behavior when Redis or Gemini are unavailable
 
-### 1. Performance Optimizer (`src/performance_optimizer.py`)
-- **KafkaOptimizer**: Configures `lz4` compression, batching, and `acks` settings.
-- **ConnectionPoolManager**: Manages thread pools for concurrent tasks.
-- **PerformanceMonitor**: Tracks CPU, Memory, and I/O.
+## Current Strategy
 
-### 2. Stream Monitoring (`src/stream_monitoring.py`)
-- **Metrics**: Throughput (msg/s), Latency (P95), Error Rates.
-- **Alerting**: Configurable thresholds for lag and errors.
+- SQLite keeps the local persistence path simple and portable.
+- Redis is optional and only used for live fanout and short-lived coordination.
+- Provider adapters are mock-first, so execution stays deterministic in demo mode.
+- The frontend refetches compact datasets instead of maintaining a complex client cache.
 
-### 3. Load Testing Framework (`src/load_testing.py`)
-- Automated load generation.
-- Latency percentile calculation.
-- Stress testing scenarios.
+## When To Optimize
 
-## Configuration Optimizations
+Only optimize after one of these shows up:
 
-### Kafka Producer
-```python
-{
-    'compression.type': 'lz4',
-    'linger.ms': 5,
-    'batch.size': 65536,
-    'acks': 'all',
-    'enable.idempotence': True
-}
-```
+- slow dashboard load with realistic demo data
+- delayed approval resolution in the local loop
+- websocket fanout lag
+- provider execution bottlenecks in live mode
 
-### Kafka Consumer
-```python
-{
-    'fetch.min.bytes': 50000,
-    'max.poll.records': 1000,
-    'enable.auto.commit': False
-}
-```
+## What Not To Prioritize For The MVP
 
-## Monitoring Thresholds
-
-| Metric | Threshold |
-|--------|-----------|
-| Processing Latency (P95) | < 1000ms |
-| Error Rate | < 5% |
-| Throughput | > 1 msg/s (min) |
-| CPU Usage | < 85% |
-| Memory Usage | < 80% |
-
-## Running Benchmarks
-
-```bash
-# Full suite
-python backend/performance_benchmark.py full --output results.json
-
-# Kafka specific
-python backend/performance_benchmark.py kafka --duration 60
-
-# Production readiness check
-python backend/performance_benchmark.py readiness
-```
+- Kafka throughput tuning
+- external APM instrumentation as a demo dependency
+- voice pipeline latency
+- deep graph analytics for the older immune-system experiments

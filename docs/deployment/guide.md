@@ -1,181 +1,66 @@
-# Chorus Agent Conflict Predictor - Comprehensive Deployment Guide
+# Deployment Guide
 
-This guide covers deployment options for the Chorus Agent Conflict Predictor system, including quick starts, detailed configuration, and production strategies.
+This guide describes how to run the current auth control plane MVP locally.
 
-## 🚀 Quick Start
+## Recommended Local Path
 
-### Prerequisites
-- **Gemini API Key**: [Get from Google AI Studio](https://makersuite.google.com/app/apikey)
-- **Docker**: Installed and running (Recommended method)
-- **Redis**: Required if running natively (included in Docker)
-
-### Option 1: Docker Development (Fastest)
+### 1. Backend setup
 
 ```bash
-# 1. Navigate to backend
 cd backend
-
-# 2. Configure Environment
-cp .env.example .env
-# Edit .env and add your CHORUS_GEMINI_API_KEY
-nano .env
-
-# 3. Launch
-./deploy-docker.sh dev
-
-# 4. Access
-# Dashboard: http://localhost:3000
-# API: http://localhost:8000
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### Option 2: Production Docker
+### 2. Frontend setup
 
 ```bash
-# 1. Setup Production Config
-cp .env.production .env
-nano .env # Add keys and adjust settings
-
-# 2. Deploy
-./deploy-docker.sh prod
-
-# 3. Validate
-./validate-deployment.sh --backend-url http://localhost:8000
+cd frontend
+npm install
 ```
 
----
-
-## 📋 Configuration Details
-
-### 1. Environment Setup
-
-Copy the appropriate template:
-```bash
-# For development
-cp .env.example .env
-
-# For production
-cp .env.production .env
-```
-
-**Key Configuration Variables:**
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `CHORUS_ENVIRONMENT` | `production` or `development` | Yes |
-| `CHORUS_GEMINI_API_KEY` | Google Gemini API Key | Yes |
-| `CHORUS_REDIS_HOST` | Redis Hostname | Yes |
-| `CHORUS_DATADOG_ENABLED`| Enable Datadog Observability | No |
-
-### 2. Validation
-
-Before fully deploying, validate your configuration:
+### 3. Launch the seeded demo
 
 ```bash
-python start_system.py validate-config
-# or
-python -m src.config_validator
+./run_frontend_demo.sh
 ```
 
----
+This path starts:
 
-## 🛠 Deployment Strategies
+- the FastAPI backend on `http://localhost:8000`
+- the Vite frontend on `http://localhost:5173`
+- the seeded demo workspace with the mock user, connections, agents, and scenario-ready permissions
 
-### 1. Docker Deployment (Standard)
-
-The project includes a robust `deploy-docker.sh` script to manage containers.
-
-**Commands:**
-- `./deploy-docker.sh dev`: Start development stack (hot-reload).
-- `./deploy-docker.sh prod`: Start production stack (optimized images, nginx).
-- `./deploy-docker.sh status`: Check service health.
-- `./deploy-docker.sh logs`: Tail logs.
-- `./deploy-docker.sh stop`: Stop all services.
-
-**Services Included:**
-- `backend`: FastAPI application.
-- `dashboard`: React frontend.
-- `redis`: Persistence layer.
-- `nginx`: Reverse proxy (Production only).
-
-### 2. Kubernetes Deployment (Scalable)
-
-For production clusters using `k8s-deployment.yml`.
+## Backend-Only Runtime
 
 ```bash
-# 1. Configure Secrets & ConfigMaps
-# (Edit k8s-deployment.yml or use kubectl create secret)
-
-# 2. Apply Manifests
-kubectl apply -f k8s-deployment.yml
-
-# 3. Verify
-kubectl get pods -n chorus-agent-predictor
+./run_backend_api.sh
 ```
 
-**Features:**
-- Horizontal Pod Autoscaling (HPA).
-- Persistent Redis Storage.
-- Health Probes (Liveness/Readiness).
+This starts the control plane with the seeded defaults and exposes the REST and websocket surfaces without the frontend.
 
-### 3. Native Linux Deployment (Legacy/Manual)
+## Docker Compose
 
-For running directly on a VM/Metal without Docker.
+The default compose path runs Redis and the control-plane backend only.
 
 ```bash
-# 1. Run Deployment Script
-sudo ./deploy.sh deploy
-
-# 2. Manage Service
-sudo systemctl start chorus-agent-predictor
-sudo systemctl status chorus-agent-predictor
+cd backend
+docker compose up --build
 ```
 
----
+Notes:
 
-## 🏥 System Management
+- `SEED_ON_STARTUP=true` is enabled in the default backend service so the demo remains reproducible.
+- Kafka and Zookeeper remain available only behind the `legacy` profile for historical experiments.
 
-### Health Checks
+## Live Integration Mode
 
-```bash
-# API Health
-curl http://localhost:8000/api/v1/system/health
+The repository is mock-first. To wire real auth or provider infrastructure:
 
-# Scripted Check
-./validate-deployment.sh
+1. set `AUTH_MODE=auth0`
+2. populate the `AUTH0_*` variables
+3. populate the `TOKEN_VAULT_*` variables
+4. provide `GEMINI_API_KEY` if you want contextual risk enrichment
 
-# Docker Health
-./deploy-docker.sh health
-```
-
-### Logging
-
-**Log Levels**: Configure `LOG_LEVEL` in `.env` (DEBUG, INFO, WARNING, ERROR).
-
-**Access Logs:**
-- Docker: `docker-compose logs -f`
-- Systemd: `journalctl -u chorus-agent-predictor -f`
-
-### Backup & Recovery
-
-- **Configuration**: Backup `.env` files securely.
-- **Redis Data**: Periodic RDB snapshots (`/var/lib/redis/dump.rdb`).
-- **Recovery**: Services are configured to auto-restart on failure (`Restart=always`).
-
----
-
-## 🔒 Security Best Practices
-
-1.  **API Keys**: Never commit `.env` files. Use secrets management in production.
-2.  **Network**: In production, ensure Redis is not exposed to the public internet. Use a firewall.
-3.  **HTTPS**: Always use HTTPS for the Dashboard and API in production (handled by Nginx/Ingress).
-4.  **Least Privilege**: Run services as non-root users (default in Dockerfile).
-
-## 🛑 Uninstallation
-
-```bash
-# Docker
-./deploy-docker.sh cleanup
-
-# Native
-sudo ./deploy.sh uninstall
-```
+The API contracts stay the same when moving from mock adapters to live adapters.

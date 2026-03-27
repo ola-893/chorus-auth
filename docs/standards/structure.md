@@ -1,69 +1,25 @@
-# Chorus Project Structure
-This workspace follows clean architecture principles. When creating new files and folders, maintain consistency with established patterns.
+# Project Structure
 
-## AI Assistant Guidelines
-- Always check existing project structure before creating new files
-- Use listDirectory tool to understand current organization
-- Follow established naming conventions in the project
-- Keep related functionality grouped together
-- Create minimal, focused implementations
+The active repository structure centers on the auth control plane MVP.
 
-## Organization Principles
-- **Separation of Concerns**: Keep different types of code in appropriate directories
-- **Consistency**: Use the same naming patterns throughout the project
-- **Clarity**: Use descriptive names that indicate purpose and functionality
-- **Modularity**: Group related functionality into cohesive modules
+## Top-Level Layout
 
-## Repository Layout
-```
-chorus-multi-agent-immune/
-├── backend/
-│ ├── src/
-│ │ ├── prediction_engine/
-│ │ │ ├── gemini_client.py
-│ │ │ ├── game_theory/
-│ │ │ ├── models/
-│ │ │ └── simulator.py
-│ │ ├── firewall/
-│ │ ├── mapper/
-│ │ ├── integrations/
-│ │ └── api/
-│ ├── tests/
-│ └── requirements.txt
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── dashboard/
-│ │ │ ├── causal_graph/
-│ │ │ └── alerts/
-│ │ ├── hooks/
-│ │ └── services/
-│ └── package.json
-├── infrastructure/
-│ ├── terraform/
-│ ├── docker/
-│ └── scripts/
-├── docs/
-├── examples/
-└── .github/workflows/
-```
+- `backend/`: FastAPI backend, SQLAlchemy models, seeded demo helpers, and tests
+- `frontend/`: Vite React dashboard
+- `docs/`: current guides plus archived legacy references
+- `run_frontend_demo.sh`: seeded full-stack demo launcher
+- `run_backend_api.sh`: backend-only control-plane launcher
 
+## Backend Layout
 
-## Naming Conventions
-- **snake_case** for Python files, directories, variables, and functions
-- **PascalCase** for Python classes, React components, and TypeScript interfaces
-- **camelCase** for JavaScript/TypeScript variables and functions
-- **kebab-case** for configuration files and URLs
+- `src/control_plane_app.py`: current FastAPI entrypoint
+- `src/db/`: database models, sessions, and bootstrap helpers
+- `src/auth/`, `src/vault/`, `src/connections/`, `src/agents/`
+- `src/policy/`, `src/risk/`, `src/enforcement/`
+- `src/actions/`, `src/approvals/`, `src/audit/`, `src/providers/`
+- `src/demo/`: seeded demo data and smoke runner
+- `tests/control_plane/`: targeted control-plane smoke coverage
 
-## Import Patterns
-### Python
-Standard library imports first, then third-party, then local imports. Group with blank lines.
+## Legacy Layout
 
-### TypeScript/React
-React imports first, then third-party libraries, then local components and hooks.
-
-## Architectural Decisions
-1.  **Modular Monolith**: Single codebase with clear internal boundaries for hackathon development speed.
-2.  **Event-Driven Core**: Confluent Kafka is the central nervous system for all agent communications.
-3.  **External State**: Redis for fast, ephemeral state (trust scores); Cloud Storage for durable quarantine logs.
-4.  **Dependency Direction**: Lower-level modules (e.g., `gemini_client`) do not depend on higher-level modules (e.g., `api`).
+Older prediction-engine, Kafka, Datadog, and voice-related packages still exist in the repository, but they are not the default runtime path. Treat them as archived experiments unless a doc explicitly says otherwise.
