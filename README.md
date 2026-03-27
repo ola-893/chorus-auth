@@ -72,6 +72,9 @@ Expected outcomes:
 - [Environment Variables](docs/deployment/environment_variables.md)
 - [Development Backend Guide](docs/development/backend.md)
 - [Development Frontend Guide](docs/development/frontend.md)
+- [API Standards](docs/standards/api.md)
+- [Project Structure](docs/standards/structure.md)
+- [Testing Standards](docs/standards/testing.md)
 
 ## Runtime Defaults
 
@@ -85,3 +88,9 @@ Expected outcomes:
 ## Legacy Note
 
 The original immune-system, Kafka, Datadog, and voice-alert experiments remain in the repository for reference, but they are no longer part of the default demo path. Treat scripts and docs that still describe the old prediction platform as legacy unless they explicitly mention the auth control plane.
+
+Archived top-level reference docs are called out directly in places like:
+
+- [Legacy Integration Design](docs/architecture/integration_design.md)
+- [Legacy Kafka Implementation](docs/architecture/kafka_implementation.md)
+- [Legacy CLI Dashboard](docs/development/cli_dashboard.md)
