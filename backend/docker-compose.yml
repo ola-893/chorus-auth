@@ -52,7 +52,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=sqlite:///./chorus.db
+      - DATABASE_URL=sqlite:///./data/chorus.db
       - USE_NEW_ACTION_PIPELINE=true
       - USE_LEGACY_PIPELINE=false
       - AUTH_MODE=mock

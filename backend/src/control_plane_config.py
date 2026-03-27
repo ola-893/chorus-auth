@@ -20,7 +20,7 @@ class ControlPlaneSettings(BaseSettings):
     environment: str = Field(default="development")
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=8000)
-    database_url: str = Field(default="sqlite:///./chorus.db")
+    database_url: str = Field(default="sqlite:///./data/chorus.db")
     redis_url: str = Field(default="redis://localhost:6379/0")
     use_new_action_pipeline: bool = Field(default=True)
     use_legacy_pipeline: bool = Field(default=False)

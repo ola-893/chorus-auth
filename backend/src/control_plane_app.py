@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .control_plane_config import settings
+from .db.session import prepare_storage_directory
 
 
 def create_app() -> FastAPI:
@@ -29,6 +30,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.on_event("startup")
+    async def startup() -> None:
+        prepare_storage_directory()
 
     @app.get("/")
     async def root() -> dict:

@@ -6,6 +6,7 @@
 .*
 !.gitignore
 !.dockerignore
+!backend/data/.gitkeep
 
 # ============================================================================
 # Validation and Test Results
@@ -75,6 +76,10 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
+backend/data/*.sqlite-journal
 
 # Scrapy stuff:
 .scrapy
