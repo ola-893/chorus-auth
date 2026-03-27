@@ -11,6 +11,7 @@ from ..actions.service import action_request_service
 from ..audit.service import append_audit_event
 from ..db.enums import ActionStatus, ApprovalStatus
 from ..db.models import ActionRequest, ApprovalDecision, User
+from ..realtime.events import publish_dashboard_event
 from .schemas import ApprovalQueueItemResponse
 
 
@@ -54,7 +55,13 @@ class ApprovalService:
         action_request_service.execute_after_approval(session, user, approval.action_request)
         session.commit()
         session.refresh(approval)
-        return self.serialize_approval(approval)
+        response = self.serialize_approval(approval)
+        publish_dashboard_event("approval.updated", response.model_dump(mode="json"))
+        publish_dashboard_event(
+            "action.updated",
+            action_request_service.serialize_action(approval.action_request).model_dump(mode="json"),
+        )
+        return response
 
     def reject(
         self,
@@ -84,7 +91,13 @@ class ApprovalService:
         )
         session.commit()
         session.refresh(approval)
-        return self.serialize_approval(approval)
+        response = self.serialize_approval(approval)
+        publish_dashboard_event("approval.updated", response.model_dump(mode="json"))
+        publish_dashboard_event(
+            "action.updated",
+            action_request_service.serialize_action(approval.action_request).model_dump(mode="json"),
+        )
+        return response
 
     def serialize_approval(self, approval: ApprovalDecision) -> ApprovalQueueItemResponse:
         action = approval.action_request

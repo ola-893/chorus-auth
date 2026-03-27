@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from ..db.enums import ProviderType, RiskLevel
 from ..db.models import Agent, AgentCapabilityGrant, Capability, User
+from ..realtime.events import publish_dashboard_event
 from .schemas import AgentCreate, AgentResponse, CapabilityGrantCreate, CapabilityGrantResponse
 
 DEFAULT_CAPABILITIES = [
@@ -107,7 +108,9 @@ def create_agent(session: Session, user: User, payload: AgentCreate) -> AgentRes
     session.add(agent)
     session.commit()
     session.refresh(agent)
-    return serialize_agent(agent)
+    response = serialize_agent(agent)
+    publish_dashboard_event("agent.created", response.model_dump(mode="json"))
+    return response
 
 
 def list_agents(session: Session, user: User) -> list[AgentResponse]:
@@ -181,4 +184,12 @@ def grant_capability(
     session.commit()
     session.refresh(grant)
     session.refresh(agent)
-    return serialize_capability_grant(grant)
+    response = serialize_capability_grant(grant)
+    publish_dashboard_event(
+        "agent.capability.updated",
+        {
+            "agent_id": agent.id,
+            "grant": response.model_dump(mode="json"),
+        },
+    )
+    return response

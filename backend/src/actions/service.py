@@ -15,6 +15,7 @@ from ..db.models import ActionRequest, ApprovalDecision, ExecutionRecord, Quaran
 from ..enforcement.service import EnforcementEngine
 from ..policy.service import PolicyEngine
 from ..providers.service import provider_registry
+from ..realtime.events import publish_dashboard_event
 from ..risk.service import RiskEngine
 from ..vault.adapters import get_vault_adapter
 from .schemas import ActionRequestCreate, ActionRequestResponse
@@ -72,7 +73,9 @@ class ActionRequestService:
             self._apply_block_or_quarantine(session, action, agent, user, decision, reason)
             session.commit()
             session.refresh(action)
-            return self.serialize_action(action)
+            response = self.serialize_action(action)
+            publish_dashboard_event("action.updated", response.model_dump(mode="json"))
+            return response
 
         action.action_type = policy.capability.action_type
         action.connected_account_id = policy.connected_account.id if policy.connected_account else None
@@ -155,7 +158,9 @@ class ActionRequestService:
 
         session.commit()
         session.refresh(action)
-        return self.serialize_action(action)
+        response = self.serialize_action(action)
+        publish_dashboard_event("action.updated", response.model_dump(mode="json"))
+        return response
 
     def list_actions(self, session: Session, user: User) -> list[ActionRequestResponse]:
         actions = session.scalars(

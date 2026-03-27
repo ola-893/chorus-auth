@@ -6,34 +6,34 @@ from sqlalchemy.orm import Session
 
 from ..control_plane_config import settings
 from ..db.models import ConnectedAccount, User
+from ..realtime.events import publish_dashboard_event
 from ..vault.adapters import get_vault_adapter
 from .schemas import ConnectedAccountCreate, ConnectedAccountResponse
 
 
+def serialize_connected_account(user: User, account: ConnectedAccount) -> ConnectedAccountResponse:
+    """Convert an account record into an API response."""
+    vault = get_vault_adapter()
+    access = vault.get_provider_access(user, account.provider, account.scopes_json)
+    return ConnectedAccountResponse(
+        id=account.id,
+        provider=account.provider,
+        external_account_id=account.external_account_id,
+        scopes=list(account.scopes_json),
+        status=account.status,
+        connection_mode=account.connection_mode,
+        vault_reference=access.reference,
+    )
+
+
 def list_connections(session: Session, user: User) -> list[ConnectedAccountResponse]:
     """Return all connections for the user."""
-    vault = get_vault_adapter()
     accounts = session.scalars(
         select(ConnectedAccount)
         .where(ConnectedAccount.user_id == user.id)
         .order_by(ConnectedAccount.created_at.asc())
     ).all()
-
-    results: list[ConnectedAccountResponse] = []
-    for account in accounts:
-        access = vault.get_provider_access(user, account.provider, account.scopes_json)
-        results.append(
-            ConnectedAccountResponse(
-                id=account.id,
-                provider=account.provider,
-                external_account_id=account.external_account_id,
-                scopes=list(account.scopes_json),
-                status=account.status,
-                connection_mode=account.connection_mode,
-                vault_reference=access.reference,
-            )
-        )
-    return results
+    return [serialize_connected_account(user, account) for account in accounts]
 
 
 def create_or_update_connection(
@@ -69,4 +69,6 @@ def create_or_update_connection(
 
     session.commit()
     session.refresh(account)
-    return list_connections(session, user)[-1]
+    response = serialize_connected_account(user, account)
+    publish_dashboard_event("connection.updated", response.model_dump(mode="json"))
+    return response

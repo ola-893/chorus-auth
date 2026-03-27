@@ -1,6 +1,7 @@
 """
 Lightweight FastAPI entrypoint for the auth control plane runtime.
 """
+import asyncio
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
@@ -17,6 +18,8 @@ from .connections.router import router as connections_router
 from .control_plane_config import settings
 from .db.bootstrap import create_schema, seed_reference_data
 from .db.session import SessionLocal, prepare_storage_directory
+from .realtime.events import dashboard_events
+from .realtime.router import router as realtime_router
 
 
 def create_app() -> FastAPI:
@@ -42,6 +45,7 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def startup() -> None:
+        dashboard_events.bind_loop(asyncio.get_running_loop())
         prepare_storage_directory()
         create_schema()
         session: Session = SessionLocal()
@@ -56,6 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(actions_router, prefix="/api")
     app.include_router(approvals_router, prefix="/api")
     app.include_router(audit_router, prefix="/api")
+    app.include_router(realtime_router)
 
     @app.get("/")
     async def root() -> dict:
