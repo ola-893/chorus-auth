@@ -49,4 +49,5 @@ class AgentResponse(BaseModel):
     description: str | None
     status: AgentStatus
     metadata: dict[str, Any]
+    quarantine_reason: str | None
     capabilities: list[CapabilityGrantResponse]

@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 
 from ..agents.service import get_agent_for_user
 from ..audit.service import append_audit_event
-from ..db.enums import ActionStatus, ApprovalStatus, EnforcementDecision, ExecutionStatus
-from ..db.models import ActionRequest, ApprovalDecision, ExecutionRecord, RiskAssessment, User
+from ..control_plane_config import settings
+from ..db.enums import ActionStatus, AgentStatus, ApprovalStatus, EnforcementDecision, ExecutionStatus
+from ..db.models import ActionRequest, ApprovalDecision, ExecutionRecord, QuarantineRecord, RiskAssessment, User
 from ..enforcement.service import EnforcementEngine
 from ..policy.service import PolicyEngine
 from ..providers.service import provider_registry
@@ -61,32 +62,20 @@ class ActionRequestService:
         )
 
         if not policy.allowed:
-            action.status = ActionStatus.QUARANTINED if policy.decision == EnforcementDecision.QUARANTINE else ActionStatus.POLICY_BLOCKED
-            action.enforcement_decision = policy.decision
-            action.explanation = policy.reason
-            action.resolved_at = datetime.now(timezone.utc)
-            self._create_or_update_execution_record(
-                session,
-                action,
-                status=ExecutionStatus.BLOCKED,
-                summary=policy.reason,
-                external_reference_id=None,
-                result={},
-            )
-            append_audit_event(
-                session,
-                "action.blocked",
-                policy.reason,
-                action_request=action,
-                agent=agent,
-                user=user,
-                details={"decision": policy.decision.value},
-            )
+            blocked_count = self._count_previous_blocked_actions(session, agent.id) + 1
+            decision = policy.decision
+            reason = policy.reason
+            threshold = settings.quarantine_after_blocked_requests
+            if decision == EnforcementDecision.BLOCK and blocked_count >= threshold:
+                decision = EnforcementDecision.QUARANTINE
+                reason = "Repeated blocked requests crossed the quarantine threshold."
+            self._apply_block_or_quarantine(session, action, agent, user, decision, reason)
             session.commit()
             session.refresh(action)
             return self.serialize_action(action)
 
         action.action_type = policy.capability.action_type
+        action.connected_account_id = policy.connected_account.id if policy.connected_account else None
         risk = self.risk_engine.assess(agent, policy.capability, payload.payload, policy.reason)
         session.add(
             RiskAssessment(
@@ -101,7 +90,7 @@ class ActionRequestService:
             )
         )
 
-        blocked_violation_count = self._count_previous_blocked_actions(session, agent.id)
+        blocked_violation_count = self._count_previous_blocked_actions(session, agent.id) + 1
         enforcement = self.enforcement_engine.decide(
             policy,
             risk,
@@ -155,24 +144,13 @@ class ActionRequestService:
                 details={"decision": enforcement.decision.value},
             )
         else:
-            action.status = ActionStatus.POLICY_BLOCKED
-            action.resolved_at = datetime.now(timezone.utc)
-            self._create_or_update_execution_record(
+            self._apply_block_or_quarantine(
                 session,
                 action,
-                status=ExecutionStatus.BLOCKED,
-                summary=enforcement.reason,
-                external_reference_id=None,
-                result={},
-            )
-            append_audit_event(
-                session,
-                "action.blocked",
+                agent,
+                user,
+                enforcement.decision,
                 enforcement.reason,
-                action_request=action,
-                agent=agent,
-                user=user,
-                details={"decision": enforcement.decision.value},
             )
 
         session.commit()
@@ -228,6 +206,35 @@ class ActionRequestService:
             execution_status=execution_status,
         )
 
+    def execute_after_approval(self, session: Session, user: User, action: ActionRequest) -> None:
+        """Resume a pending approval action and execute it."""
+        vault = get_vault_adapter()
+        access = vault.get_provider_access(user, action.provider, action.connected_account.scopes_json if action.connected_account else [])
+        execution = provider_registry.get(action.provider).execute(
+            action.capability_name,
+            action.payload_json,
+            access,
+        )
+        action.status = ActionStatus.COMPLETED if execution.success else ActionStatus.FAILED
+        action.resolved_at = datetime.now(timezone.utc)
+        self._create_or_update_execution_record(
+            session,
+            action,
+            status=ExecutionStatus.SUCCEEDED if execution.success else ExecutionStatus.FAILED,
+            summary=execution.summary,
+            external_reference_id=execution.external_reference_id,
+            result=execution.payload,
+        )
+        append_audit_event(
+            session,
+            "action.executed",
+            execution.summary,
+            action_request=action,
+            agent=action.agent,
+            user=user,
+            details={"decision": action.enforcement_decision.value if action.enforcement_decision else None},
+        )
+
     def _create_or_update_execution_record(
         self,
         session: Session,
@@ -257,6 +264,57 @@ class ActionRequestService:
                 )
             )
             or 0
+        )
+
+    def _apply_block_or_quarantine(
+        self,
+        session: Session,
+        action: ActionRequest,
+        agent,
+        user: User,
+        decision: EnforcementDecision,
+        reason: str,
+    ) -> None:
+        action.status = ActionStatus.QUARANTINED if decision == EnforcementDecision.QUARANTINE else ActionStatus.POLICY_BLOCKED
+        action.enforcement_decision = decision
+        action.explanation = reason
+        action.resolved_at = datetime.now(timezone.utc)
+        self._create_or_update_execution_record(
+            session,
+            action,
+            status=ExecutionStatus.BLOCKED,
+            summary=reason,
+            external_reference_id=None,
+            result={},
+        )
+        if decision == EnforcementDecision.QUARANTINE:
+            agent.status = AgentStatus.QUARANTINED
+            agent.quarantined_at = datetime.now(timezone.utc)
+            session.add(
+                QuarantineRecord(
+                    agent_id=agent.id,
+                    trigger_action_request_id=action.id,
+                    trigger_reason=reason,
+                    active=True,
+                )
+            )
+            append_audit_event(
+                session,
+                "agent.quarantined",
+                reason,
+                action_request=action,
+                agent=agent,
+                user=user,
+                details={"decision": decision.value},
+            )
+        append_audit_event(
+            session,
+            "action.blocked" if decision != EnforcementDecision.QUARANTINE else "action.quarantined",
+            reason,
+            action_request=action,
+            agent=agent,
+            user=user,
+            details={"decision": decision.value},
         )
 
 

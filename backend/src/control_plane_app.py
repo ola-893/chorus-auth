@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .actions.router import router as actions_router
 from .agents.router import router as agents_router
+from .approvals.router import router as approvals_router
 from .audit.router import router as audit_router
 from .auth.router import router as auth_router
 from .connections.router import router as connections_router
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(connections_router, prefix="/api")
     app.include_router(agents_router, prefix="/api")
     app.include_router(actions_router, prefix="/api")
+    app.include_router(approvals_router, prefix="/api")
     app.include_router(audit_router, prefix="/api")
 
     @app.get("/")

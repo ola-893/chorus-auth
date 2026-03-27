@@ -82,6 +82,7 @@ def serialize_capability_grant(grant: AgentCapabilityGrant) -> CapabilityGrantRe
 
 def serialize_agent(agent: Agent) -> AgentResponse:
     """Convert an ORM agent into an API response."""
+    active_quarantine = next((record for record in agent.quarantine_records if record.active), None)
     return AgentResponse(
         id=agent.id,
         name=agent.name,
@@ -89,6 +90,7 @@ def serialize_agent(agent: Agent) -> AgentResponse:
         description=agent.description,
         status=agent.status,
         metadata=agent.metadata_json,
+        quarantine_reason=active_quarantine.trigger_reason if active_quarantine else None,
         capabilities=[serialize_capability_grant(grant) for grant in agent.capability_grants],
     )
 
@@ -114,7 +116,8 @@ def list_agents(session: Session, user: User) -> list[AgentResponse]:
         select(Agent)
         .where(Agent.owner_user_id == user.id)
         .options(
-            selectinload(Agent.capability_grants).selectinload(AgentCapabilityGrant.capability)
+            selectinload(Agent.capability_grants).selectinload(AgentCapabilityGrant.capability),
+            selectinload(Agent.quarantine_records),
         )
         .order_by(Agent.created_at.asc())
     ).all()
@@ -127,7 +130,8 @@ def get_agent_for_user(session: Session, user: User, agent_id: str) -> Agent:
         select(Agent)
         .where(Agent.id == agent_id, Agent.owner_user_id == user.id)
         .options(
-            selectinload(Agent.capability_grants).selectinload(AgentCapabilityGrant.capability)
+            selectinload(Agent.capability_grants).selectinload(AgentCapabilityGrant.capability),
+            selectinload(Agent.quarantine_records),
         )
     )
     if agent is None:
