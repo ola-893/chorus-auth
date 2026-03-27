@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Chorus Multi-Agent Immune System - Demo Scenarios
-# This script provides easy access to different demonstration modes
+# Chorus Demo Launcher
+# The auth control plane dashboard is the primary path.
+# Older immune-system demos remain available as legacy options.
 
 set -e
 
@@ -159,13 +160,19 @@ asyncio.run(check())
 
 # Demo scenarios
 demo_quick_start() {
-    print_header "Quick Start Demo (5 minutes)"
-    print_info "This demo shows basic system capabilities"
+    print_header "Legacy Quick Start Demo (5 minutes)"
+    print_warning "This path launches the older immune-system simulation."
     
     cd backend
     source venv/bin/activate
     python ../comprehensive_demo.py --mode simulation --duration 300
     cd ..
+}
+
+demo_auth_control_plane() {
+    print_header "Auth Control Plane Dashboard"
+    print_info "Launching the seeded delegated-action control plane demo"
+    ./run_frontend_demo.sh
 }
 
 demo_full_system() {
@@ -244,25 +251,22 @@ start_dev_environment() {
     
     # Start backend API
     print_info "Starting backend API server..."
-    cd backend
-    source venv/bin/activate
-    python src/main.py &
+    ./run_backend_api.sh &
     BACKEND_PID=$!
-    cd ..
     
     # Start frontend if available
-    if [ -d "frontend" ]; then
+    if [ -f "frontend/package.json" ]; then
         print_info "Starting frontend development server..."
         cd frontend
-        npm start &
+        npm run dev -- --host 0.0.0.0 &
         FRONTEND_PID=$!
         cd ..
     fi
     
     print_success "Development environment started"
     print_info "Backend API: http://localhost:8000"
-    if [ -d "frontend" ]; then
-        print_info "Frontend Dashboard: http://localhost:3000"
+    if [ -f "frontend/package.json" ]; then
+        print_info "Frontend Dashboard: http://localhost:5173"
     fi
     
     print_info "Press Ctrl+C to stop all services"
@@ -309,28 +313,31 @@ deploy_docker() {
 # Show menu
 show_menu() {
     echo -e "${PURPLE}"
-    echo "🎭 Chorus Multi-Agent Immune System - Demo Scenarios"
+    echo "🎭 Chorus Demo Launcher"
     echo -e "${NC}"
     echo "Choose a demonstration scenario:"
     echo ""
-    echo "📋 System Management:"
-    echo "  1) Check Prerequisites"
-    echo "  2) Install Dependencies"
-    echo "  3) System Health Check"
-    echo "  4) Run Test Suite"
+    echo "⭐ Recommended:"
+    echo "  1) Auth Control Plane Dashboard"
     echo ""
-    echo "🎬 Demo Scenarios:"
-    echo "  5) Quick Start Demo (5 min)"
-    echo "  6) Full System Demo (10 min)"
-    echo "  7) Dashboard Demo (3 min)"
-    echo "  8) API Integration Demo (2 min)"
-    echo "  9) Conflict Prediction Demo"
-    echo " 10) Interactive CLI Dashboard"
+    echo "📋 System Management:"
+    echo "  2) Check Prerequisites"
+    echo "  3) Install Dependencies"
+    echo "  4) System Health Check"
+    echo "  5) Run Test Suite"
+    echo ""
+    echo "🧪 Legacy Immune System Demos:"
+    echo "  6) Legacy Quick Start Demo (5 min)"
+    echo "  7) Legacy Full System Demo (10 min)"
+    echo "  8) Legacy Dashboard Demo (3 min)"
+    echo "  9) Legacy API Integration Demo (2 min)"
+    echo " 10) Legacy Conflict Prediction Demo"
+    echo " 11) Legacy Interactive CLI Dashboard"
     echo ""
     echo "🚀 Development & Deployment:"
-    echo " 11) Start Development Environment"
-    echo " 12) Deploy with Docker"
-    echo " 13) Production Deployment"
+    echo " 12) Start Development Environment"
+    echo " 13) Deploy with Docker"
+    echo " 14) Production Deployment"
     echo ""
     echo "  0) Exit"
     echo ""
@@ -340,23 +347,24 @@ show_menu() {
 main() {
     while true; do
         show_menu
-        read -p "Enter your choice (0-13): " choice
+        read -p "Enter your choice (0-14): " choice
         echo ""
         
         case $choice in
-            1) check_prerequisites ;;
-            2) install_dependencies ;;
-            3) health_check ;;
-            4) run_tests ;;
-            5) demo_quick_start ;;
-            6) demo_full_system ;;
-            7) demo_dashboard_only ;;
-            8) demo_api_integration ;;
-            9) demo_conflict_prediction ;;
-            10) demo_cli_dashboard ;;
-            11) start_dev_environment ;;
-            12) deploy_docker ;;
-            13) deploy_production ;;
+            1) demo_auth_control_plane ;;
+            2) check_prerequisites ;;
+            3) install_dependencies ;;
+            4) health_check ;;
+            5) run_tests ;;
+            6) demo_quick_start ;;
+            7) demo_full_system ;;
+            8) demo_dashboard_only ;;
+            9) demo_api_integration ;;
+            10) demo_conflict_prediction ;;
+            11) demo_cli_dashboard ;;
+            12) start_dev_environment ;;
+            13) deploy_docker ;;
+            14) deploy_production ;;
             0) 
                 print_info "Goodbye!"
                 exit 0

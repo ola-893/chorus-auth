@@ -59,6 +59,7 @@ services:
       - VAULT_MODE=mock
       - PROVIDER_MODE=mock
       - SEED_DEMO=true
+      - SEED_ON_STARTUP=true
     depends_on:
       redis:
         condition: service_healthy

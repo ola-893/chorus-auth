@@ -28,7 +28,7 @@ class ControlPlaneSettings(BaseSettings):
     vault_mode: str = Field(default="mock")
     provider_mode: str = Field(default="mock")
     seed_demo: bool = Field(default=True)
-    seed_on_startup: bool = Field(default=False)
+    seed_on_startup: bool = Field(default=True)
     quarantine_after_blocked_requests: int = Field(default=2)
     auth0_domain: Optional[str] = Field(default=None)
     auth0_audience: Optional[str] = Field(default=None)
