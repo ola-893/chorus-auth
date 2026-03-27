@@ -1,208 +1,102 @@
-# Chorus Multi-Agent Immune System - Complete System Overview
+# Chorus Auth Control Plane System Overview
 
-## 🎯 Executive Summary
+## Executive Summary
 
-Chorus is a production-ready AI-powered immune system for decentralized multi-agent networks. It prevents cascading failures through predictive intervention, real-time trust management, and automated quarantine mechanisms. Built with enterprise-grade architecture and comprehensive observability.
+Chorus is now a secure control plane for AI agents that act on behalf of users. The platform sits between agents and external providers, enforcing capability grants, evaluating risk, requesting human approval for sensitive actions, and recording a complete audit trail for every decision.
 
-## 🏗️ System Architecture
+The active MVP uses Gmail and GitHub demo adapters, SQLite for persisted state, Redis for optional live fanout, and a React dashboard that exposes accounts, permissions, approvals, actions, and quarantine state.
 
-### Core Components
+## Primary Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           CHORUS IMMUNE SYSTEM                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                              USER INTERFACES                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │  CLI Dashboard  │  │   REST API      │  │   Web Dashboard (React)    │ │
-│  │  Real-time      │  │   FastAPI       │  │   Production UI             │ │
-│  │  Monitoring     │  │   OpenAPI       │  │   (Optional)                │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                            CONTROL LAYER                                   │
-│  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │                    INTERVENTION ENGINE                                  │ │
-│  │  • Quarantine Management    • Safety Mechanisms                        │ │
-│  │  • Automated Responses      • Manual Overrides                         │ │
-│  └─────────────────────────────────────────────────────────────────────────┘ │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                             ANALYSIS LAYER                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │ CONFLICT        │  │ TRUST           │  │ AGENT                       │ │
-│  │ PREDICTOR       │  │ MANAGER         │  │ SIMULATOR                   │ │
-│  │                 │  │                 │  │                             │ │
-│  │ • Gemini 3 Pro  │  │ • Dynamic       │  │ • Multi-Agent               │ │
-│  │ • Game Theory   │  │   Scoring       │  │   Environment               │ │
-│  │ • Risk Analysis │  │ • Redis Store   │  │ • Behavior Sim              │ │
-│  │ • ML Prediction │  │ • Threshold     │  │ • Resource Mgmt             │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                          INTEGRATION LAYER                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │ REDIS           │  │ DATADOG         │  │ ELEVENLABS                  │ │
-│  │ • Trust Store   │  │ • Observability │  │ • Voice Alerts              │ │
-│  │ • Session Cache │  │ • Event Log     │  │ • TTS Incidents             │ │
-│  │ • Event Log     │  │ • Dashboards    │  │ • Audio Streaming           │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
-│                                                                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │ GEMINI API      │  │ CONFLUENT       │  │ SYSTEM HEALTH               │ │
-│  │ • AI Analysis   │  │ • Event Stream  │  │ • Health Checks             │ │
-│  │ • Conflict Pred │  │ • Message Bus   │  │ • Real-time     │  │ • Error Handling            │ │
-│  │ • Game Theory   │  │ • Real-time     │  │ • Logging                   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    User["User"] --> Dashboard["React Dashboard"]
+    Dashboard --> API["FastAPI Control Plane"]
+    API --> Auth["Auth Adapter"]
+    API --> Agents["Agent Registry"]
+    API --> Policy["Policy Engine"]
+    API --> Risk["Risk Engine"]
+    Risk --> Enforcement["Enforcement Engine"]
+    Enforcement --> Approvals["Approval Workflow"]
+    Enforcement --> Providers["Provider Adapters"]
+    Providers --> Vault["Vault Adapter"]
+    API --> Audit["Audit Log"]
+    API --> Realtime["WebSocket Fanout"]
+    Audit --> Dashboard
+    Realtime --> Dashboard
 ```
 
-### Data Flow
+## Bounded Contexts
 
-```
-Agent Activity → Trust Scoring → Conflict Prediction → Risk Assessment → Intervention Decision
-      ↓              ↓               ↓                    ↓                    ↓
-   Simulation    Redis Storage   Gemini Analysis    Threshold Check      Quarantine Action
-      ↓              ↓               ↓                    ↓                    ↓
-  Monitoring     Dashboard UI     API Response       Alert System        Event Logging
-```
+### Frontend
 
-## 🚀 Key Capabilities
+- Connected account management
+- Agent and capability visibility
+- Pending approval queue
+- Action submission studio
+- Audit timeline and quarantine state
 
-### 1. AI-Powered Conflict Prediction
-- **Gemini 3 Pro Integration**: Advanced AI analysis of agent interactions
-- **Game Theory Models**: Mathematical prediction of conflict scenarios
-- **Real-time Analysis**: <50ms prediction latency for critical decisions
-- **Risk Scoring**: Quantitative assessment with configurable thresholds
+### Backend
 
-### 2. Dynamic Trust Management
-- **Behavioral Scoring**: Continuous trust score updates based on agent actions
-- **Threshold Monitoring**: Automatic detection of trust violations
-- **Historical Tracking**: Complete audit trail of trust score changes
-- **Redis Persistence**: High-performance storage with sub-millisecond access
+- `auth`: resolves the current user in mock mode or through Auth0-compatible headers
+- `vault`: mediates provider access and keeps tokens off-agent
+- `connections`: stores connected provider accounts and scopes
+- `agents`: manages agent records and capability grants
+- `policy`: enforces deterministic capability and scope checks
+- `risk`: maps actions into low, medium, high, or critical risk with optional Gemini explanation
+- `enforcement`: turns policy and risk outputs into `ALLOW`, `REQUIRE_APPROVAL`, `BLOCK`, or `QUARANTINE`
+- `actions`: owns action request lifecycle and execution
+- `approvals`: resolves human decisions and resumes approved work
+- `audit`: appends the execution history shown in the dashboard
+- `providers`: executes Gmail and GitHub actions in mock-first mode
 
-### 3. Automated Intervention
-- **Quarantine System**: Immediate isolation of problematic agents
-- **Preventive Actions**: Proactive intervention before conflicts escalate
-- **Manual Overrides**: Administrative controls for emergency situations
-- **Confidence Scoring**: Intervention decisions with confidence metrics
+## Data Model
 
-### 4. Comprehensive Observability
-- **Real-time Dashboard**: Live system monitoring with visual indicators
-- **REST API**: Programmatic access to all system metrics and controls
-- **Datadog Integration**: Enterprise-grade monitoring and alerting
-- **Structured Logging**: Comprehensive audit trails and debugging
+The control plane persists the following core entities:
 
-### 5. Production-Ready Infrastructure
-- **Docker Deployment**: Containerized services with orchestration
-- **Kubernetes Support**: Scalable cloud-native deployment
-- **Health Monitoring**: Automated health checks and recovery
-- **Configuration Management**: Environment-based configuration
+- `users`
+- `connected_accounts`
+- `agents`
+- `capabilities`
+- `agent_capability_grants`
+- `action_requests`
+- `risk_assessments`
+- `approval_decisions`
+- `execution_records`
+- `quarantine_records`
+- `audit_events`
 
-## 📊 Technical Specifications
+## Decision Lifecycle
 
-### Performance Metrics
-- **Conflict Prediction**: <50ms response time
-- **Trust Score Updates**: <10ms latency
-- **Dashboard Refresh**: 1-2 second intervals
-- **API Response**: <100ms for standard operations
-- **Quarantine Action**: <500ms end-to-end
+1. An agent submits an action request through `/api/actions`.
+2. The policy engine confirms the capability grant, provider connection, and scope constraints.
+3. The risk engine classifies the request and optionally enriches the explanation with Gemini.
+4. The enforcement engine decides whether to allow, require approval, block, or quarantine.
+5. If allowed, the provider adapter executes with vault-mediated access.
+6. Every state transition is written to the audit log and pushed to `/ws/dashboard`.
 
-### Scalability
-- **Agent Capacity**: 1,000+ concurrent agents (tested)
-- **Throughput**: 10,000+ events/second
-- **Storage**: Redis cluster support for horizontal scaling
-- **API**: Stateless design for load balancer compatibility
+## Default Demo State
 
-### Reliability
-- **Uptime**: 99.9% availability target
-- **Error Handling**: Graceful degradation with fallback modes
-- **Data Persistence**: Redis with backup and recovery
-- **Health Monitoring**: Automated failure detection and alerts
+The seeded MVP creates:
 
-## 🔧 Technology Stack
+- one mock user
+- one Gmail connection
+- one GitHub connection
+- `Assistant Agent`, `Builder Agent`, and `Ops Agent`
+- one safe allow path
+- one approval-required path
+- one block-to-quarantine path
 
-### Backend (Python)
-```python
-# Core Framework
-fastapi>=0.104.0          # High-performance API framework
-uvicorn>=0.24.0           # ASGI server
-pydantic>=2.5.0           # Data validation and serialization
+## Runtime Defaults
 
-# AI & Machine Learning
-google-generativeai>=1.0.0  # Gemini 3 Pro integration
-networkx>=3.2.0             # Graph analysis for agent networks
+- `USE_NEW_ACTION_PIPELINE=true`
+- `USE_LEGACY_PIPELINE=false`
+- `AUTH_MODE=mock`
+- `VAULT_MODE=mock`
+- `PROVIDER_MODE=mock`
+- `SEED_DEMO=true`
+- `SEED_ON_STARTUP=true` when launched by `run_frontend_demo.sh`
 
-# Data Storage & Caching
-redis>=5.0.0              # High-performance key-value store
-aioredis>=2.0.0           # Async Redis client
+## Legacy Context
 
-# Monitoring & Observability
-datadog-api-client>=2.25.0  # Datadog integration
-structlog>=23.2.0           # Structured logging
-
-# Testing & Quality
-pytest>=7.4.0            # Testing framework
-hypothesis>=6.88.0        # Property-based testing
-pytest-cov>=4.1.0        # Coverage reporting
-```
-
-### Frontend (React/TypeScript)
-```json
-{
-  "react": "^18.2.0",
-  "typescript": "^5.2.0",
-  "@types/react": "^18.2.0",
-  "axios": "^1.6.0",
-  "recharts": "^2.8.0",
-  "tailwindcss": "^3.3.0"
-}
-```
-
-### Infrastructure
-- **Redis 7.0+**: Primary data store
-- **Docker 24.0+**: Containerization
-- **Kubernetes 1.28+**: Orchestration (optional)
-- **Nginx**: Reverse proxy and load balancing
-
-## 📈 Business Value
-
-### For Platform Engineers
-- **Prevent Outages**: Proactive detection of system failures
-- **Reduce MTTR**: Faster incident response with AI insights
-- **Improve Reliability**: Automated safety mechanisms
-- **Cost Savings**: Prevent expensive cascading failures
-
-### For AI/ML Engineers
-- **Multi-Agent Safety**: Reliable operation of agent fleets
-- **Behavioral Insights**: Deep understanding of agent interactions
-- **Automated Governance**: Self-regulating agent ecosystems
-- **Scalable Monitoring**: Handle thousands of concurrent agents
-
-### For DevOps Teams
-- **Observability**: Comprehensive monitoring and alerting
-- **Integration**: Works with existing Datadog/monitoring stacks
-- **Automation**: Reduces manual intervention requirements
-- **Compliance**: Complete audit trails and governance
-
-## 🎯 Current System Status (As of Dec 2025)
-
-### Core Functionality
-- ✅ **Agent Simulation**: 100% functional - agents created and operational
-- ✅ **Conflict Prediction**: 100% functional - Parser validates risk analysis
-- ✅ **Trust Management**: 100% functional - Redis-backed scoring system
-- ✅ **Quarantine System**: 100% functional - Agent isolation capabilities
-- ✅ **Intervention Engine**: 100% functional - Risk threshold processing
-
-### Integration Status
-- ✅ **Gemini API**: Configuration validated, client initialized (Deep Integration)
-- ✅ **Datadog**: Client configured, metrics capability confirmed (Full Integration)
-- ⚠️ **Kafka**: Configuration present (Event Streaming, Optional for core)
-- ⚠️ **ElevenLabs**: Configuration present (Voice Synthesis, Optional for core)
-
-### Validated Workflows
-- Agent Simulation Basic Workflow
-- Conflict Analysis Workflow
-- Quarantine Workflow
-- Intervention Threshold Workflow
-- Trust Score Persistence Workflow
-- System Recovery Workflow
-
-The system is considered **Production Ready** with >90% validation success rate across comprehensive tests.
+The original immune-system prediction stack still exists in the repository, but it is now a legacy reference path. Kafka, Datadog, and ElevenLabs are not required for the auth control plane MVP and are intentionally removed from the default demo path.

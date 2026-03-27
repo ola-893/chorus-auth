@@ -1,59 +1,50 @@
-# Hackathon Submission Package
+# Authorized To Act Submission Notes
 
-## 🏆 Executive Summary
+## Submission Positioning
 
-**Chorus** is a revolutionary AI-powered safety layer for decentralized multi-agent systems that predicts and prevents cascading failures before they occur. Our solution integrates all four partner technologies (Google Gemini, Datadog, Confluent, ElevenLabs).
+**Chorus** is now framed as a secure authorization and intervention layer for AI agents. Instead of leading with conflict prediction, the demo leads with delegated access, scoped permissions, human approval, and visible enforcement around high-stakes agent actions.
 
-**Key Achievement**: 90.9% system validation success rate with comprehensive integration.
+## Why This Fits The Sponsor Prompt
 
-## 💡 Innovation Highlights
+- **Security model**: Agents never receive raw provider credentials. Provider access stays server-side behind the Auth0 and Token Vault adapters.
+- **User control**: The dashboard makes connected accounts, agent grants, approval checkpoints, audit events, and quarantine state visible in one place.
+- **Technical execution**: Every action goes through deterministic policy, contextual risk evaluation, and an explicit enforcement decision before any provider call happens.
+- **Insight value**: The product shows how multi-agent systems can keep least privilege and human control even when multiple agents act on a user’s behalf.
 
-*   **First-of-its-kind**: Decentralized multi-agent safety system.
-*   **Game Theory**: Uses Gemini 3 Pro for Nash equilibrium calculations.
-*   **Real-time**: Sub-50ms conflict prediction latency.
-*   **Proactive**: Prevents failures rather than just monitoring them.
+## Demo Story
 
-## 🔧 Partner Technology Integration
+The seeded MVP uses one user, two connected providers, and three specialized agents:
 
-### Google Gemini API ⭐
-*   **Role**: Primary conflict prediction engine.
-*   **Model**: `gemini-3-pro-preview`.
-*   **Usage**: Analyzing agent intentions and predicting conflicts.
+1. `Assistant Agent` creates a Gmail draft automatically for an approved domain.
+2. `Builder Agent` requests a GitHub issue and pauses for approval.
+3. `Ops Agent` attempts a GitHub pull request merge, is blocked, then quarantined on a repeat attempt.
 
-### Datadog ⭐
-*   **Role**: Observability and Alerting.
-*   **Usage**: Real-time metrics for agent interactions and system health.
+That sequence shows `ALLOW`, `REQUIRE_APPROVAL`, `BLOCK`, and `QUARANTINE` decisions in under a minute.
 
-### Confluent Kafka ⭐
-*   **Role**: Event Streaming.
-*   **Usage**: High-throughput message bus for agent communication (1000+ msg/s).
+## Sponsor-Relevant Architecture
 
-### ElevenLabs ⭐
-*   **Role**: Voice Incident Response.
-*   **Usage**: Natural language narration of critical failures.
+- **Auth**: Mock-first Auth0-compatible adapter with a stable interface for real tenant wiring.
+- **Vault**: Mock-first Token Vault adapter that mediates provider access and keeps tokens off-agent.
+- **Providers**: Gmail and GitHub execution adapters with normalized results.
+- **Policy and risk**: Deterministic capability checks backed by Gemini explanations for contextual risk.
+- **Audit**: Append-only event trail plus live dashboard updates over `/ws/dashboard`.
 
-## 🏗️ System Architecture
+## How To Run The Submission
 
-```
-Agent Network → Kafka Streaming → Gemini Analysis → Trust Scoring → Intervention → Voice Alerts
-     ↓              ↓                ↓              ↓              ↓           ↓
-  Simulation    Event Sourcing   Risk Scoring   Redis Storage   Quarantine  ElevenLabs
+```bash
+./run_frontend_demo.sh
 ```
 
-## 🧪 Validation & Testing
+Optional smoke verification:
 
-*   **260+ Automated Tests**: 92.7% success rate.
-*   **Property-Based Testing**: Ensuring correctness invariants.
-*   **End-to-End**: Full workflow validation from Agent to Dashboard.
+```bash
+cd backend
+venv/bin/python -m src.demo.smoke_runner
+```
 
-## 🚀 Production Readiness
+## Demo Talking Points
 
-*   **Dockerized**: Single command deployment.
-*   **Kubernetes Ready**: Helm charts and manifests included.
-*   **Secure**: API key management and network isolation.
-
-## 📞 Team & Resources
-
-*   **Live Demo**: Available via `run_frontend_demo.sh`.
-*   **Source Code**: Full implementation provided.
-*   **Documentation**: Comprehensive guides in `docs/`.
+- Least privilege is visible at the agent level, not buried in backend code.
+- Approval is treated as a first-class lifecycle state, not a manual side channel.
+- Repeated violations escalate automatically into quarantine.
+- The MVP remains usable in mock mode, but the Auth0 and Token Vault seams are already explicit.

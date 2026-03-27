@@ -1,71 +1,87 @@
-# Chorus Multi-Agent Immune System
+# Chorus Auth Control Plane
 
-**A real-time safety layer for decentralized multi-agent systems that predicts and prevents emergent failures before they cascade.**
+**A secure control plane for delegated AI agent actions with scoped capabilities, approval workflows, and auditable execution.**
 
----
+Chorus now centers on one clear product story: users connect provider accounts, grant narrow capabilities to specialized agents, and route every agent action through policy, risk, approval, and audit controls before execution. The default MVP runs in mock mode with Gmail and GitHub adapters, SQLite persistence, Redis for live fanout, and a fresh React dashboard.
 
-## 📚 Documentation Center
+## What The Demo Shows
 
-We have reorganized our documentation to make it easier to navigate.
+The seeded demo follows three agents:
 
-### 🏗️ [Architecture](docs/architecture/system_overview.md)
-*   [**System Overview**](docs/architecture/system_overview.md): High-level design, components, and data flow.
-*   [**Integration Design**](docs/architecture/integration_design.md): Universal API and Dashboard expansion.
-*   [**Pattern Alerts**](docs/architecture/pattern_alerts.md): Implementation of the pattern detection system.
-*   [**Kafka Buffering**](docs/architecture/kafka_implementation.md): Resilience and message buffering strategies.
+- `Assistant Agent` auto-creates a Gmail draft for an approved domain.
+- `Builder Agent` requests a GitHub issue and pauses in a human approval queue.
+- `Ops Agent` attempts a sensitive pull request merge, gets blocked, and is quarantined on repeat.
 
-### 📐 [Standards](docs/standards/structure.md)
-*   [**Project Structure**](docs/standards/structure.md): Repository layout and organization principles.
-*   [**Coding Standards**](docs/standards/coding.md): Python and React style guides.
-*   [**API Standards**](docs/standards/api.md): REST design and error handling.
-*   [**Testing Standards**](docs/standards/testing.md): Testing pyramid and mocking strategies.
-*   [**Technology Stack**](docs/standards/technology.md): Approved technologies and libraries.
+That flow demonstrates:
 
-### 🚀 [Deployment](docs/deployment/guide.md)
-*   [**Deployment Guide**](docs/deployment/guide.md): Comprehensive guide for Docker, Kubernetes, and local setups.
-*   [**Readiness Checklist**](docs/deployment/readiness.md): Verification steps for production.
-*   [**Environment Variables**](docs/deployment/environment_variables.md): Full configuration reference.
-*   [**Troubleshooting**](docs/deployment/troubleshooting.md): Common issues and fixes.
+- delegated access through Auth0 and Token Vault adapters
+- least-privilege capability grants per agent
+- deterministic policy plus Gemini-backed risk explanations
+- approval-aware execution and immutable audit history
+- quarantine enforcement for repeated violations
 
-### 💻 [Development](docs/development/backend.md)
-*   [**Backend Guide**](docs/development/backend.md): Python/FastAPI architecture and setup.
-*   [**Frontend Guide**](docs/development/frontend.md): React dashboard development.
-*   [**CLI Dashboard**](docs/development/cli_dashboard.md): Terminal-based monitoring tools.
-*   [**Testing Guide**](docs/development/testing.md): Integration, unit, and property-based testing strategies.
-*   [**Performance**](docs/development/performance.md): Optimization and benchmarking.
+## Quick Start
 
-### 🎓 [Guides & Demos](docs/guides/demos.md)
-*   [**Demo Guide**](docs/guides/demos.md): How to run the various demos (Executive, Technical, Hackathon).
-*   [**Hackathon Submission**](docs/guides/hackathon.md): Summary of the submission package and innovation highlights.
+### Full dashboard demo
 
-### 📝 [Planning](docs/planning/product_overview.md)
-*   [**Product Overview**](docs/planning/product_overview.md): Vision, problem statement, and key features.
-*   [**Feature Specs**](docs/planning/specs/): Detailed specifications for various system components.
-*   [**Spec: Auth Control Plane**](docs/planning/specs/auth-control-plane/requirements.md): Refactor plan for delegated agent authorization, approvals, and auditability.
-*   [**PRD: Universal Interface**](docs/planning/prd_universal_interface.md)
-*   [**TDD: Universal Interface**](docs/planning/tdd_universal_interface.md)
-
----
-
-## ⚡ Quick Start
-
-### Run the Full Demo
 ```bash
 ./run_frontend_demo.sh
 ```
 
-### Run the Interactive Menu
+This starts the FastAPI control plane, seeds the mock demo workspace, and launches the Vite dashboard.
+
+### Smoke-check the seeded story
+
 ```bash
-./demo_scenarios.sh
+cd backend
+venv/bin/python -m src.demo.smoke_runner
 ```
 
----
+Expected outcomes:
 
-## 🏆 Project Highlights
-*   **Predicts Conflicts**: Uses **Google Gemini 3 Pro** for game theory analysis.
-*   **Prevents Failures**: Real-time quarantine via **Redis** trust scoring.
-*   **Observability**: Integrated with **Datadog** and **Confluent Kafka**.
-*   **Voice Alerts**: Critical incident narration via **ElevenLabs**.
+- `allow_status=completed`
+- `approval_status=pending_approval`
+- `approved_queue_status=approved`
+- `second_block_status=quarantined`
 
----
-*Chorus Team - December 2025*
+## Core Architecture
+
+- **Frontend**: React dashboard for connected accounts, agent permissions, pending approvals, activity timeline, and quarantine state.
+- **Backend**: FastAPI control plane with bounded contexts for `auth`, `vault`, `connections`, `agents`, `policy`, `risk`, `enforcement`, `actions`, `approvals`, `audit`, and `providers`.
+- **Storage**: SQLite for persisted state and Redis for optional live fanout and ephemeral coordination.
+- **Execution Model**: Agents request capabilities, not raw tokens. The backend evaluates policy and risk, retrieves provider access through the vault adapter, executes the action, and records the full trail.
+
+## Documentation
+
+### Start here
+
+- [System Overview](docs/architecture/system_overview.md)
+- [Demo Guide](docs/guides/demos.md)
+- [Hackathon Submission Notes](docs/guides/hackathon.md)
+- [Product Overview](docs/planning/product_overview.md)
+
+### Planning specs
+
+- [Auth Control Plane Requirements](docs/planning/specs/auth-control-plane/requirements.md)
+- [Auth Control Plane Design](docs/planning/specs/auth-control-plane/design.md)
+- [Auth Control Plane Tasks](docs/planning/specs/auth-control-plane/tasks.md)
+
+### Supporting references
+
+- [Deployment Guide](docs/deployment/guide.md)
+- [Environment Variables](docs/deployment/environment_variables.md)
+- [Development Backend Guide](docs/development/backend.md)
+- [Development Frontend Guide](docs/development/frontend.md)
+
+## Runtime Defaults
+
+- `USE_NEW_ACTION_PIPELINE=true`
+- `USE_LEGACY_PIPELINE=false`
+- `AUTH_MODE=mock`
+- `VAULT_MODE=mock`
+- `PROVIDER_MODE=mock`
+- `SEED_DEMO=true`
+
+## Legacy Note
+
+The original immune-system, Kafka, Datadog, and voice-alert experiments remain in the repository for reference, but they are no longer part of the default demo path. Treat scripts and docs that still describe the old prediction platform as legacy unless they explicitly mention the auth control plane.

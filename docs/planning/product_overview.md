@@ -1,43 +1,59 @@
-# Chorus: Multi-Agent Immune System - Product Overview
+# Chorus Product Overview
 
 ## Vision
-A real-time safety layer for decentralized multi-agent systems that predicts and prevents emergent failures before they cascade.
+
+Chorus should be the safest way to let AI agents act on behalf of a user across real tools like Gmail, GitHub, calendars, and internal systems.
 
 ## Problem Statement
-Autonomous agents in peer-to-peer systems create unpredictable emergent behaviors that cause cascading failures. Current tools (LangGraph, Worka) require central orchestration and cannot address true decentralized system failures.
 
-## Target Users
-1. **Platform Engineers** at Google Cloud, Datadog, Confluence who manage decentralized infrastructure
-2. **AI/ML Engineers** running multi-LLM fleets without central orchestrators
-3. **IoT/Edge Developers** building smart city/building systems with autonomous devices
-4. **Financial Services DevOps** monitoring algorithmic trading agent swarms
+Most agent products still treat authorization as an afterthought. They let agents operate with broad permissions, weak human review, and poor visibility into what was attempted, what was approved, and what was blocked. That becomes dangerous as soon as agents can send messages, modify repositories, or perform other high-impact actions.
 
-## Key Features
-### Core Capabilities
-- **Conflict Prediction**: <50ms prediction of agent conflicts using game theory via Gemini 3 Pro[citation:1][citation:4]
-- **Cascading Failure Firewall**: Real-time quarantine of compromised agents
-- **Emergent Behavior Mapping**: Causal graph visualization of agent interactions
-- **Voice-First Alerts**: ElevenLabs-powered natural language incident reporting
+Chorus solves that by placing a control plane between the user, the agent, and the provider integration.
 
-### Business Objectives
-1. **Hackathon Win**: Deliver a solution integrating all four partner technologies (Google Gemini API, Datadog, Confluent, ElevenLabs)
-2. **Technical Validation**: Prove decentralized multi-agent safety is solvable with partner technologies
-3. **Foundation for Production**: Create MVP that demonstrates clear enterprise value
+## Primary Users
 
-## Current Refactor Direction
+1. Individuals who want safe delegated help from assistant-style agents
+2. Teams operating multiple specialized agents with different permission boundaries
+3. Developers building secure agent workflows on top of provider APIs
+4. Hackathon judges evaluating practical patterns for authorized AI actions
 
-The active refactor direction for the next Chorus MVP is captured in the [Auth Control Plane spec](specs/auth-control-plane/requirements.md). That work repositions Chorus around delegated access, scoped capabilities, approval workflows, and auditability for AI agents while preserving only the reusable intervention concepts from the legacy system.
+## Product Principles
 
-## Integration Points (Partner Requirements)
-| Partner | Integration Point | How Chorus Delivers |
-|---------|------------------|---------------------|
-| **Google Cloud** | Gemini Developer API | `gemini-3-pro-preview` for conflict prediction[citation:10] |
-| **Datadog** | Observability & alerting | Agent interaction dashboards, metrics, incident management |
-| **Confluent** | Real-time data streaming | Agent message bus, event streaming for behavior analysis |
-| **ElevenLabs** | Voice interface | Natural language alerts for complex emergent behaviors |
+- **Least privilege first**: agents receive narrowly scoped capabilities instead of broad ambient access
+- **Human control stays visible**: approvals, blocks, and quarantine events are first-class UI states
+- **Safe defaults win**: deterministic policy checks still work when model enrichment or providers fail
+- **Auditability is mandatory**: every action request, decision, and execution outcome must be explainable
 
-## Success Metrics (Hackathon Judging)
-1. **Technical Implementation**: Working prototype with all 4 partner integrations
-2. **Innovation**: Novel solution to unsolved decentralized agent problem
-3. **Business Value**: Clear ROI for each partner's use cases
-4. **Presentation**: Compelling demo of real-world failure prevention
+## Core MVP Features
+
+- Auth0-compatible login seam with a mock-first local mode
+- Token Vault adapter seam for delegated provider access
+- Connected account registry for Gmail and GitHub
+- Agent registry with per-agent capability grants
+- Deterministic policy engine with provider-specific constraints
+- Gemini-backed risk explanation layer
+- Approval queue for medium-risk actions
+- Quarantine escalation for repeated blocked behavior
+- Audit timeline with realtime dashboard updates
+
+## Active Demo Story
+
+The current MVP demonstrates:
+
+1. an automatically allowed Gmail draft
+2. a GitHub issue that requires approval
+3. a GitHub pull request merge that is blocked and then escalates to quarantine
+
+This is the active product direction reflected in the [Auth Control Plane spec](specs/auth-control-plane/requirements.md), [design](specs/auth-control-plane/design.md), and [tasks](specs/auth-control-plane/tasks.md).
+
+## Success Criteria
+
+- Users can see which accounts are connected and what scopes they expose.
+- Each agent’s permissions are visible and editable.
+- Sensitive actions pause in an approval queue instead of executing immediately.
+- Repeated violations escalate cleanly into quarantine.
+- The demo can be launched locally with a single documented command.
+
+## Legacy Context
+
+The older conflict-prediction and immune-system concepts are still useful as historical context for the risk and intervention language, but they are no longer the main product story for Chorus.
