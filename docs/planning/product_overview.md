@@ -24,6 +24,10 @@ Autonomous agents in peer-to-peer systems create unpredictable emergent behavior
 2. **Technical Validation**: Prove decentralized multi-agent safety is solvable with partner technologies
 3. **Foundation for Production**: Create MVP that demonstrates clear enterprise value
 
+## Current Refactor Direction
+
+The active refactor direction for the next Chorus MVP is captured in the [Auth Control Plane spec](specs/auth-control-plane/requirements.md). That work repositions Chorus around delegated access, scoped capabilities, approval workflows, and auditability for AI agents while preserving only the reusable intervention concepts from the legacy system.
+
 ## Integration Points (Partner Requirements)
 | Partner | Integration Point | How Chorus Delivers |
 |---------|------------------|---------------------|

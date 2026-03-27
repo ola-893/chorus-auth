@@ -41,6 +41,7 @@ We have reorganized our documentation to make it easier to navigate.
 ### 📝 [Planning](docs/planning/product_overview.md)
 *   [**Product Overview**](docs/planning/product_overview.md): Vision, problem statement, and key features.
 *   [**Feature Specs**](docs/planning/specs/): Detailed specifications for various system components.
+*   [**Spec: Auth Control Plane**](docs/planning/specs/auth-control-plane/requirements.md): Refactor plan for delegated agent authorization, approvals, and auditability.
 *   [**PRD: Universal Interface**](docs/planning/prd_universal_interface.md)
 *   [**TDD: Universal Interface**](docs/planning/tdd_universal_interface.md)
 
