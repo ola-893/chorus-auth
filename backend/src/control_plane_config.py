@@ -22,14 +22,20 @@ class ControlPlaneSettings(BaseSettings):
     api_port: int = Field(default=8000)
     database_url: str = Field(default="sqlite:///./data/chorus.db")
     auth_mode: str = Field(default="mock")
+    allow_demo_mode: bool = Field(default=True)
     vault_mode: str = Field(default="mock")
     provider_mode: str = Field(default="mock")
     seed_demo: bool = Field(default=True)
     seed_on_startup: bool = Field(default=True)
     quarantine_after_blocked_requests: int = Field(default=2)
     auth0_domain: Optional[str] = Field(default=None)
+    auth0_issuer: Optional[str] = Field(default=None)
     auth0_audience: Optional[str] = Field(default=None)
     auth0_client_id: Optional[str] = Field(default=None)
+    auth0_jwks_url: Optional[str] = Field(default=None)
+    auth0_scope: str = Field(default="openid profile email")
+    auth0_http_timeout_seconds: float = Field(default=5.0)
+    auth0_jwks_cache_ttl_seconds: int = Field(default=600)
     token_vault_audience: Optional[str] = Field(default=None)
     token_vault_client_id: Optional[str] = Field(default=None)
     token_vault_client_secret: Optional[str] = Field(default=None)
@@ -40,6 +46,7 @@ class ControlPlaneSettings(BaseSettings):
         """Return non-sensitive mode information for health and diagnostics."""
         return {
             "auth_mode": self.auth_mode,
+            "allow_demo_mode": self.allow_demo_mode,
             "vault_mode": self.vault_mode,
             "provider_mode": self.provider_mode,
             "seed_demo": self.seed_demo,

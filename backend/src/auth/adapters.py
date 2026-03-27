@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from ..control_plane_config import settings
 from ..db.models import User
+from .jwt_verifier import jwt_verifier
 
 
 @dataclass
@@ -44,25 +45,26 @@ class MockAuthAdapter:
 
 
 class Auth0AuthAdapter:
-    """Header-based Auth0-compatible adapter placeholder."""
+    """Bearer-token Auth0 adapter backed by JWKS verification."""
 
     def resolve_identity(self, request: Request) -> ResolvedIdentity:
-        subject = request.headers.get("x-auth-subject")
-        email = request.headers.get("x-auth-email")
-        name = request.headers.get("x-auth-name") or email
-
-        if not subject or not email:
+        authorization = request.headers.get("authorization", "")
+        if not authorization.lower().startswith("bearer "):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing Auth0 identity headers",
+                detail="Missing Auth0 bearer token",
             )
+        token = authorization.split(" ", 1)[1].strip()
+        claims = jwt_verifier.verify(token)
+        email = claims.email or _fallback_email_for_subject(claims.sub)
+        display_name = claims.name or claims.nickname or email
 
         return ResolvedIdentity(
             email=email,
-            display_name=name or "Authenticated User",
-            auth_subject=subject,
+            display_name=display_name,
+            auth_subject=claims.sub,
             auth_provider_id="auth0",
-            metadata={"mode": "auth0-header"},
+            metadata={"mode": "auth0", "claims": {"aud": claims.claims.get("aud")}},
         )
 
 
@@ -100,3 +102,18 @@ def resolve_or_create_user(session: Session, request: Request) -> User:
     session.commit()
     session.refresh(user)
     return user
+
+
+def resolve_user_if_present(session: Session, request: Request) -> User | None:
+    """Resolve a user when auth material is present, otherwise return None."""
+    try:
+        return resolve_or_create_user(session, request)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
+
+
+def _fallback_email_for_subject(subject: str) -> str:
+    sanitized = subject.replace("|", ".").replace(":", ".").replace("/", ".")
+    return f"{sanitized}@auth0.local"
