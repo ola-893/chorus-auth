@@ -18,6 +18,7 @@ from .connections.router import router as connections_router
 from .control_plane_config import settings
 from .db.bootstrap import create_schema, seed_reference_data
 from .db.session import SessionLocal, prepare_storage_directory
+from .demo.seed import seed_demo_on_startup
 from .realtime.events import dashboard_events
 from .realtime.router import router as realtime_router
 
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
         session: Session = SessionLocal()
         try:
             seed_reference_data(session)
+            seed_demo_on_startup(session)
         finally:
             session.close()
 
@@ -89,6 +91,7 @@ def create_app() -> FastAPI:
             "database_url": settings.database_url,
             "redis_url": settings.redis_url,
             "modes": settings.mode_summary(),
+            "seed_on_startup": settings.seed_on_startup,
         }
 
     return app
