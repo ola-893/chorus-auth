@@ -12,6 +12,7 @@ from .enums import (
     ActionStatus,
     AgentStatus,
     ApprovalStatus,
+    ConnectionHealthStatus,
     ConnectedAccountStatus,
     EnforcementDecision,
     ExecutionStatus,
@@ -63,13 +64,21 @@ class ConnectedAccount(PrimaryKeyMixin, TimestampMixin, Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     provider: Mapped[ProviderType] = mapped_column(Enum(ProviderType), nullable=False)
     external_account_id: Mapped[Optional[str]] = mapped_column(String(255))
+    display_label: Mapped[Optional[str]] = mapped_column(String(255))
     scopes_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     status: Mapped[ConnectedAccountStatus] = mapped_column(
         Enum(ConnectedAccountStatus),
         default=ConnectedAccountStatus.CONNECTED,
         nullable=False,
     )
+    connection_health: Mapped[ConnectionHealthStatus] = mapped_column(
+        Enum(ConnectionHealthStatus),
+        default=ConnectionHealthStatus.HEALTHY,
+        nullable=False,
+    )
     connection_mode: Mapped[str] = mapped_column(String(50), default="mock", nullable=False)
+    vault_reference: Mapped[Optional[str]] = mapped_column(String(255))
+    last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     owner: Mapped["User"] = relationship(back_populates="connected_accounts")

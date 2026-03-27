@@ -3,12 +3,14 @@ Seed helpers for a repeatable auth control plane demo workspace.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..agents.service import ensure_capability_catalog
 from ..control_plane_config import settings
-from ..db.enums import AgentStatus, ConnectedAccountStatus, ProviderType
+from ..db.enums import AgentStatus, ConnectedAccountStatus, ConnectionHealthStatus, ProviderType
 from ..db.models import (
     ActionRequest,
     Agent,
@@ -35,12 +37,14 @@ DEMO_CONNECTIONS = [
     {
         "provider": ProviderType.GMAIL,
         "external_account_id": "demo-gmail-account",
+        "display_label": "Executive Mailbox",
         "scopes_json": ["gmail.compose", "gmail.readonly"],
         "metadata_json": {"label": "Executive mailbox"},
     },
     {
         "provider": ProviderType.GITHUB,
         "external_account_id": "demo-github-account",
+        "display_label": "Engineering Repo Access",
         "scopes_json": ["repo", "issues:write", "pull_requests:write"],
         "metadata_json": {"label": "Engineering repo access"},
     },
@@ -169,18 +173,26 @@ def _upsert_demo_connections(session: Session, user: User) -> None:
                 user_id=user.id,
                 provider=connection["provider"],
                 external_account_id=connection["external_account_id"],
+                display_label=connection["display_label"],
                 scopes_json=connection["scopes_json"],
                 status=ConnectedAccountStatus.CONNECTED,
+                connection_health=ConnectionHealthStatus.HEALTHY,
                 connection_mode=settings.vault_mode,
+                vault_reference=f"{settings.vault_mode}://{connection['provider'].value}/{user.id}",
+                last_synced_at=datetime.now(timezone.utc),
                 metadata_json=connection["metadata_json"],
             )
             session.add(account)
             continue
 
         account.external_account_id = connection["external_account_id"]
+        account.display_label = connection["display_label"]
         account.scopes_json = connection["scopes_json"]
         account.status = ConnectedAccountStatus.CONNECTED
+        account.connection_health = ConnectionHealthStatus.HEALTHY
         account.connection_mode = settings.vault_mode
+        account.vault_reference = f"{settings.vault_mode}://{connection['provider'].value}/{user.id}"
+        account.last_synced_at = datetime.now(timezone.utc)
         account.metadata_json = connection["metadata_json"]
 
 

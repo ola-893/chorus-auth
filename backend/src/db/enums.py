@@ -21,6 +21,13 @@ class ConnectedAccountStatus(str, Enum):
     ERROR = "error"
 
 
+class ConnectionHealthStatus(str, Enum):
+    HEALTHY = "healthy"
+    PENDING = "pending"
+    DEGRADED = "degraded"
+    ERROR = "error"
+
+
 class ActionStatus(str, Enum):
     RECEIVED = "received"
     POLICY_BLOCKED = "policy_blocked"

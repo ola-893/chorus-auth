@@ -37,8 +37,12 @@ class ControlPlaneSettings(BaseSettings):
     auth0_http_timeout_seconds: float = Field(default=5.0)
     auth0_jwks_cache_ttl_seconds: int = Field(default=600)
     token_vault_audience: Optional[str] = Field(default=None)
+    token_vault_base_url: Optional[str] = Field(default=None)
     token_vault_client_id: Optional[str] = Field(default=None)
     token_vault_client_secret: Optional[str] = Field(default=None)
+    token_vault_google_connection: str = Field(default="google-oauth2")
+    token_vault_github_connection: str = Field(default="github")
+    token_vault_timeout_seconds: float = Field(default=10.0)
     gemini_api_key: Optional[str] = Field(default=None)
     gemini_model: str = Field(default="gemini-3-pro-preview")
 
