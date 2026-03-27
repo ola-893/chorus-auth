@@ -6,11 +6,14 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlalchemy.orm import Session
+
+from .agents.router import router as agents_router
 from .auth.router import router as auth_router
 from .connections.router import router as connections_router
 from .control_plane_config import settings
-from .db.bootstrap import create_schema
-from .db.session import prepare_storage_directory
+from .db.bootstrap import create_schema, seed_reference_data
+from .db.session import SessionLocal, prepare_storage_directory
 
 
 def create_app() -> FastAPI:
@@ -38,9 +41,15 @@ def create_app() -> FastAPI:
     async def startup() -> None:
         prepare_storage_directory()
         create_schema()
+        session: Session = SessionLocal()
+        try:
+            seed_reference_data(session)
+        finally:
+            session.close()
 
     app.include_router(auth_router, prefix="/api")
     app.include_router(connections_router, prefix="/api")
+    app.include_router(agents_router, prefix="/api")
 
     @app.get("/")
     async def root() -> dict:
