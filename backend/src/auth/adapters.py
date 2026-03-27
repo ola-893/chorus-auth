@@ -48,13 +48,12 @@ class Auth0AuthAdapter:
     """Bearer-token Auth0 adapter backed by JWKS verification."""
 
     def resolve_identity(self, request: Request) -> ResolvedIdentity:
-        authorization = request.headers.get("authorization", "")
-        if not authorization.lower().startswith("bearer "):
+        token = extract_bearer_token(request)
+        if token is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Missing Auth0 bearer token",
             )
-        token = authorization.split(" ", 1)[1].strip()
         claims = jwt_verifier.verify(token)
         email = claims.email or _fallback_email_for_subject(claims.sub)
         display_name = claims.name or claims.nickname or email
@@ -117,3 +116,11 @@ def resolve_user_if_present(session: Session, request: Request) -> User | None:
 def _fallback_email_for_subject(subject: str) -> str:
     sanitized = subject.replace("|", ".").replace(":", ".").replace("/", ".")
     return f"{sanitized}@auth0.local"
+
+
+def extract_bearer_token(request: Request) -> str | None:
+    """Return the bearer token from the request if present."""
+    authorization = request.headers.get("authorization", "")
+    if not authorization.lower().startswith("bearer "):
+        return None
+    return authorization.split(" ", 1)[1].strip() or None

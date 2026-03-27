@@ -16,8 +16,10 @@ from .audit.router import router as audit_router
 from .auth.router import router as auth_router
 from .connections.router import router as connections_router
 from .control_plane_config import settings
+from .dashboard.router import router as dashboard_router
 from .db.bootstrap import create_schema, seed_reference_data
 from .db.session import SessionLocal, prepare_storage_directory
+from .demo.router import router as demo_router
 from .demo.seed import seed_demo_on_startup
 from .realtime.events import dashboard_events
 from .realtime.router import router as realtime_router
@@ -62,6 +64,8 @@ def create_app() -> FastAPI:
     app.include_router(actions_router, prefix="/api")
     app.include_router(approvals_router, prefix="/api")
     app.include_router(audit_router, prefix="/api")
+    app.include_router(dashboard_router, prefix="/api")
+    app.include_router(demo_router, prefix="/api")
     app.include_router(realtime_router)
 
     @app.get("/")

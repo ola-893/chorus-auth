@@ -37,7 +37,12 @@ def _reset_sqlite_schema_when_outdated() -> None:
             "connection_health",
             "vault_reference",
             "last_synced_at",
-        }
+        },
+        "execution_records": {
+            "provider_result_url",
+            "vault_reference",
+            "execution_mode",
+        },
     }
 
     for table_name, required_columns in expected_columns.items():

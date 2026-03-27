@@ -188,6 +188,9 @@ class ExecutionRecord(PrimaryKeyMixin, TimestampMixin, Base):
     status: Mapped[ExecutionStatus] = mapped_column(Enum(ExecutionStatus), default=ExecutionStatus.PENDING, nullable=False)
     provider_response_summary: Mapped[Optional[str]] = mapped_column(Text)
     external_reference_id: Mapped[Optional[str]] = mapped_column(String(255))
+    provider_result_url: Mapped[Optional[str]] = mapped_column(String(1000))
+    vault_reference: Mapped[Optional[str]] = mapped_column(String(255))
+    execution_mode: Mapped[Optional[str]] = mapped_column(String(50))
     executed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     result_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 

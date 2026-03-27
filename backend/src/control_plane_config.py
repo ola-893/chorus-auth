@@ -43,6 +43,9 @@ class ControlPlaneSettings(BaseSettings):
     token_vault_google_connection: str = Field(default="google-oauth2")
     token_vault_github_connection: str = Field(default="github")
     token_vault_timeout_seconds: float = Field(default=10.0)
+    allow_provider_fallback: bool = Field(default=True)
+    gmail_api_base_url: str = Field(default="https://gmail.googleapis.com")
+    github_api_base_url: str = Field(default="https://api.github.com")
     gemini_api_key: Optional[str] = Field(default=None)
     gemini_model: str = Field(default="gemini-3-pro-preview")
 

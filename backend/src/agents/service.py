@@ -1,11 +1,14 @@
 """
 Agent registry and capability grant services.
 """
+from datetime import datetime, timezone
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from ..db.enums import ProviderType, RiskLevel
+from ..audit.service import append_audit_event
+from ..db.enums import AgentStatus, ProviderType, RiskLevel
 from ..db.models import Agent, AgentCapabilityGrant, Capability, User
 from ..realtime.events import publish_dashboard_event
 from .schemas import AgentCreate, AgentResponse, CapabilityGrantCreate, CapabilityGrantResponse
@@ -192,4 +195,34 @@ def grant_capability(
             "grant": response.model_dump(mode="json"),
         },
     )
+    return response
+
+
+def release_quarantine(session: Session, user: User, agent_id: str) -> AgentResponse:
+    """Release an owned agent from quarantine."""
+    agent = get_agent_for_user(session, user, agent_id)
+    active_quarantine = next((record for record in agent.quarantine_records if record.active), None)
+    if active_quarantine is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Agent is not currently quarantined",
+        )
+
+    active_quarantine.active = False
+    active_quarantine.released_at = datetime.now(timezone.utc)
+    agent.status = AgentStatus.ACTIVE
+    agent.quarantined_at = None
+    agent.last_violation_at = None
+    append_audit_event(
+        session,
+        "agent.quarantine_released",
+        "Agent was released from quarantine.",
+        agent=agent,
+        user=user,
+        details={"quarantine_record_id": active_quarantine.id},
+    )
+    session.commit()
+    session.refresh(agent)
+    response = serialize_agent(agent)
+    publish_dashboard_event("agent.updated", response.model_dump(mode="json"))
     return response

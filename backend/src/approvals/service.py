@@ -34,6 +34,8 @@ class ApprovalService:
         user: User,
         approval_id: str,
         reason: str | None,
+        *,
+        subject_token: str | None = None,
     ) -> ApprovalQueueItemResponse:
         approval = self._get_approval(session, user, approval_id)
         if approval.status != ApprovalStatus.PENDING:
@@ -52,7 +54,12 @@ class ApprovalService:
             user=user,
             details={"approval_id": approval.id},
         )
-        action_request_service.execute_after_approval(session, user, approval.action_request)
+        action_request_service.execute_after_approval(
+            session,
+            user,
+            approval.action_request,
+            subject_token=subject_token,
+        )
         session.commit()
         session.refresh(approval)
         response = self.serialize_approval(approval)

@@ -8,7 +8,7 @@ from ..auth.dependencies import get_current_user
 from ..db import get_session
 from ..db.models import User
 from .schemas import AgentCreate, AgentResponse, CapabilityGrantCreate, CapabilityGrantResponse
-from .service import create_agent, get_agent_for_user, grant_capability, list_agents, serialize_agent
+from .service import create_agent, get_agent_for_user, grant_capability, list_agents, release_quarantine, serialize_agent
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -51,3 +51,13 @@ def post_capability_grant(
 ) -> CapabilityGrantResponse:
     """Grant a named capability to an agent."""
     return grant_capability(session, current_user, agent_id, payload)
+
+
+@router.post("/{agent_id}/release-quarantine", response_model=AgentResponse)
+def post_release_quarantine(
+    agent_id: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> AgentResponse:
+    """Release an agent from quarantine."""
+    return release_quarantine(session, current_user, agent_id)

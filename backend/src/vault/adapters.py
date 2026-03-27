@@ -193,13 +193,38 @@ class TokenVaultAdapter:
         scopes: list[str],
         subject_token: str | None = None,
     ) -> ProviderAccess:
-        del subject_token
+        token = require_live_token(subject_token)
+        payload = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "requested_token_type": "http://auth0.com/oauth/token-type/federated-connection-access-token",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "subject_token": token,
+            "connection": provider_connection_name(provider),
+        }
+        if settings.token_vault_audience:
+            payload["audience"] = settings.token_vault_audience
+        if settings.token_vault_client_id:
+            payload["client_id"] = settings.token_vault_client_id
+        if settings.token_vault_client_secret:
+            payload["client_secret"] = settings.token_vault_client_secret
+        with httpx.Client(timeout=settings.token_vault_timeout_seconds) as client:
+            response = client.post(oauth_token_url(), data=payload)
+        if response.status_code >= 400:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Token Vault token exchange failed: {response.text}",
+            )
+        body = response.json()
+        granted_scopes = body.get("scope", "")
+        normalized_scopes = granted_scopes.split(" ") if granted_scopes else list(scopes)
         return ProviderAccess(
             provider=provider.value,
             scope_count=len(scopes),
             reference=f"token-vault://{provider.value}/{user.id}",
             mode=settings.vault_mode,
-            granted_scopes=list(scopes),
+            access_token=body.get("access_token"),
+            granted_scopes=normalized_scopes,
+            external_account_id=body.get("external_account_id"),
         )
 
     def start_connection(
@@ -399,6 +424,21 @@ def token_vault_base_url() -> str:
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Token Vault base URL is not configured",
+    )
+
+
+def oauth_token_url() -> str:
+    """Return the Auth0 OAuth token URL for token exchange."""
+    if settings.auth0_issuer:
+        return f"{settings.auth0_issuer.rstrip('/')}/oauth/token"
+    if settings.auth0_domain:
+        domain = settings.auth0_domain.rstrip("/")
+        if not domain.startswith("http"):
+            domain = f"https://{domain}"
+        return f"{domain}/oauth/token"
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Auth0 domain is not configured for Token Vault token exchange",
     )
 
 

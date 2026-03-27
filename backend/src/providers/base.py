@@ -13,7 +13,9 @@ class ProviderExecutionResult:
 
     success: bool
     summary: str
-    external_reference_id: str
+    external_reference_id: str | None
+    result_url: str | None
+    execution_mode: str
     payload: dict
 
 
