@@ -1,0 +1,46 @@
+steps:
+  # Build the backend container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/chorus-backend:$COMMIT_SHA', '-f', 'backend/Dockerfile.cloudrun', 'backend']
+
+  # Push the backend container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/chorus-backend:$COMMIT_SHA']
+
+  # Deploy backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'chorus-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/chorus-backend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'CHORUS_ENVIRONMENT=production'
+
+  # Build the frontend
+  - name: 'node:18'
+    entrypoint: npm
+    dir: 'frontend'
+    args: ['install']
+  
+  - name: 'node:18'
+    entrypoint: npm
+    dir: 'frontend'
+    args: ['run', 'build']
+    env:
+      - 'REACT_APP_API_URL=https://chorus-backend-uc.a.run.app' # Placeholder, needs dynamic injection or env var
+      - 'REACT_APP_WS_URL=wss://chorus-backend-uc.a.run.app'
+
+  # Deploy frontend to Firebase Hosting
+  - name: 'gcr.io/$PROJECT_ID/firebase'
+    args: ['deploy', '--project', '$PROJECT_ID', '--only', 'hosting']
+
+images:
+  - 'gcr.io/$PROJECT_ID/chorus-backend:$COMMIT_SHA'

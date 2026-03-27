@@ -1,0 +1,34 @@
+[Unit]
+Description=Chorus Agent Conflict Predictor
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=chorus
+Group=chorus
+WorkingDirectory=/opt/chorus-agent-predictor/backend
+Environment=ENVIRONMENT=production
+EnvironmentFile=/opt/chorus-agent-predictor/backend/.env
+ExecStart=/opt/chorus-agent-predictor/backend/venv/bin/python /opt/chorus-agent-predictor/backend/start_system.py simulation
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=chorus-agent-predictor
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/chorus-agent-predictor/backend/logs
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=1G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

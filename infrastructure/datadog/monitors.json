@@ -1,0 +1,226 @@
+{
+    "monitors": [
+        {
+            "name": "[Chorus] Agent Trust Score Low - Warning",
+            "type": "metric alert",
+            "query": "avg(last_5m):avg:chorus.agent.trust_score{*} < 30",
+            "message": "Agent trust score dropped below 30. Agent: {{agent_id.name}}. Current score: {{value}}. Immediate investigation required. @pagerduty",
+            "tags": ["service:chorus", "env:production", "alert_type:trust_score", "severity:warning"],
+            "options": {
+                "thresholds": {
+                    "critical": 20,
+                    "warning": 30
+                },
+                "notify_audit": true,
+                "require_full_window": false,
+                "notify_no_data": true,
+                "no_data_timeframe": 20,
+                "renotify_interval": 60,
+                "escalation_message": "Trust score alert has not been resolved. Escalating to on-call engineer. @pagerduty-escalation"
+            }
+        },
+        {
+            "name": "[Chorus] Agent Trust Score Critical",
+            "type": "metric alert",
+            "query": "avg(last_5m):avg:chorus.agent.trust_score{*} < 20",
+            "message": "CRITICAL: Agent trust score dropped below 20. Agent: {{agent_id.name}}. Current score: {{value}}. Immediate quarantine recommended. @pagerduty @slack-critical",
+            "tags": ["service:chorus", "env:production", "alert_type:trust_score", "severity:critical"],
+            "options": {
+                "thresholds": {
+                    "critical": 20
+                },
+                "notify_audit": true,
+                "require_full_window": false,
+                "notify_no_data": true,
+                "no_data_timeframe": 10,
+                "renotify_interval": 30,
+                "escalation_message": "CRITICAL trust score alert requires immediate attention. @pagerduty-escalation @on-call-engineer"
+            }
+        },
+        {
+            "name": "[Chorus] Multiple Agents Quarantined",
+            "type": "metric alert",
+            "query": "sum(last_10m):sum:chorus.agent.quarantined{*} > 3",
+            "message": "CRITICAL: More than 3 agents quarantined in the last 10 minutes. Count: {{value}}. Possible cascade failure detected. @pagerduty @slack-critical",
+            "tags": ["service:chorus", "env:production", "alert_type:quarantine", "severity:critical"],
+            "options": {
+                "thresholds": {
+                    "critical": 3,
+                    "warning": 2
+                },
+                "notify_audit": true,
+                "require_full_window": false,
+                "notify_no_data": false,
+                "renotify_interval": 15,
+                "escalation_message": "Multiple quarantine alert requires immediate system review. @incident-commander @pagerduty-escalation"
+            }
+        },
+        {
+            "name": "[Chorus] System Health Degradation - Redis",
+            "type": "service check",
+            "query": "\"chorus.system.health.redis\".over(\"env:production\").last(2).count_by_status()",
+            "message": "Redis health check failed. Component: Redis. Status: {{status.name}}. @slack-ops",
+            "tags": ["service:chorus", "env:production", "alert_type:system_health", "component:redis"],
+            "options": {
+                "thresholds": {
+                    "critical": 1,
+                    "warning": 1
+                },
+                "notify_audit": true,
+                "notify_no_data": true,
+                "no_data_timeframe": 30
+            }
+        },
+        {
+            "name": "[Chorus] System Health Degradation - Datadog",
+            "type": "service check",
+            "query": "\"chorus.system.health.datadog\".over(\"env:production\").last(2).count_by_status()",
+            "message": "Datadog integration health check failed. Component: Datadog. Status: {{status.name}}. @slack-ops",
+            "tags": ["service:chorus", "env:production", "alert_type:system_health", "component:datadog"],
+            "options": {
+                "thresholds": {
+                    "critical": 1,
+                    "warning": 1
+                },
+                "notify_audit": true,
+                "notify_no_data": true,
+                "no_data_timeframe": 30
+            }
+        },
+        {
+            "name": "[Chorus] System Health Degradation - Gemini API",
+            "type": "service check",
+            "query": "\"chorus.system.health.gemini\".over(\"env:production\").last(2).count_by_status()",
+            "message": "Gemini API health check failed. Component: Gemini. Status: {{status.name}}. @slack-ops @pagerduty",
+            "tags": ["service:chorus", "env:production", "alert_type:system_health", "component:gemini"],
+            "options": {
+                "thresholds": {
+                    "critical": 1,
+                    "warning": 1
+                },
+                "notify_audit": true,
+                "notify_no_data": true,
+                "no_data_timeframe": 30,
+                "escalation_message": "Gemini API failure affects core prediction capabilities. @pagerduty-escalation"
+            }
+        },
+        {
+            "name": "[Chorus] High Conflict Prediction Rate",
+            "type": "metric alert",
+            "query": "avg(last_15m):avg:chorus.conflict.rate{*} > 0.7",
+            "message": "Conflict prediction rate exceeds normal thresholds. Rate: {{value}}. Possible system stress detected. @slack-ops",
+            "tags": ["service:chorus", "env:production", "alert_type:conflict_rate", "severity:warning"],
+            "options": {
+                "thresholds": {
+                    "critical": 1.0,
+                    "warning": 0.7
+                },
+                "notify_audit": true,
+                "require_full_window": true,
+                "notify_no_data": false,
+                "renotify_interval": 120
+            }
+        },
+        {
+            "name": "[Chorus] Critical Conflict Prediction Rate",
+            "type": "metric alert",
+            "query": "avg(last_15m):avg:chorus.conflict.rate{*} > 1.0",
+            "message": "CRITICAL: Conflict prediction rate severely elevated. Rate: {{value}}. System under extreme stress. @pagerduty @slack-critical",
+            "tags": ["service:chorus", "env:production", "alert_type:conflict_rate", "severity:critical"],
+            "options": {
+                "thresholds": {
+                    "critical": 1.0
+                },
+                "notify_audit": true,
+                "require_full_window": true,
+                "notify_no_data": false,
+                "renotify_interval": 60,
+                "escalation_message": "Critical conflict rate requires immediate system intervention. @incident-commander"
+            }
+        },
+        {
+            "name": "[Chorus] Circuit Breaker Activation",
+            "type": "metric alert",
+            "query": "sum(last_5m):sum:chorus.circuit_breaker.open{*} > 0",
+            "message": "Circuit breaker activated. Service: {{service.name}}. Degraded functionality expected. @slack-ops",
+            "tags": ["service:chorus", "env:production", "alert_type:circuit_breaker"],
+            "options": {
+                "thresholds": {
+                    "critical": 2,
+                    "warning": 1
+                },
+                "notify_audit": true,
+                "require_full_window": false,
+                "notify_no_data": false
+            }
+        },
+        {
+            "name": "[Chorus] Alert Resolution Success",
+            "type": "metric alert",
+            "query": "sum(last_1h):sum:chorus.alert.resolved{*} by {alert_type}",
+            "message": "Alert automatically resolved. Type: {{alert_type.name}}. Recovery confirmed. System health restored.",
+            "tags": ["service:chorus", "env:production", "alert_type:resolution", "severity:info"],
+            "options": {
+                "thresholds": {
+                    "warning": 1
+                },
+                "notify_audit": false,
+                "require_full_window": false,
+                "notify_no_data": false,
+                "include_tags": true
+            }
+        }
+    ],
+    "alert_policies": {
+        "trust_score_thresholds": {
+            "warning": 30,
+            "critical": 20,
+            "quarantine": 15
+        },
+        "quarantine_thresholds": {
+            "warning": 2,
+            "critical": 3,
+            "emergency": 5
+        },
+        "conflict_rate_thresholds": {
+            "warning": 0.7,
+            "critical": 1.0,
+            "emergency": 1.5
+        },
+        "notification_channels": {
+            "slack_ops": "@slack-ops",
+            "slack_critical": "@slack-critical",
+            "pagerduty": "@pagerduty",
+            "pagerduty_escalation": "@pagerduty-escalation",
+            "incident_commander": "@incident-commander",
+            "on_call_engineer": "@on-call-engineer"
+        },
+        "escalation_rules": {
+            "trust_score_critical": {
+                "initial_notification": ["pagerduty", "slack_critical"],
+                "escalation_time": 30,
+                "escalation_notification": ["pagerduty_escalation", "on_call_engineer"]
+            },
+            "multiple_quarantines": {
+                "initial_notification": ["pagerduty", "slack_critical"],
+                "escalation_time": 15,
+                "escalation_notification": ["incident_commander", "pagerduty_escalation"]
+            },
+            "system_health_critical": {
+                "initial_notification": ["slack_ops"],
+                "escalation_time": 60,
+                "escalation_notification": ["pagerduty"]
+            }
+        },
+        "auto_resolution": {
+            "enabled": true,
+            "conditions": {
+                "trust_score_recovery": "trust_score > warning_threshold + 5",
+                "quarantine_recovery": "quarantined_count == 0",
+                "system_health_recovery": "all_components_healthy",
+                "conflict_rate_recovery": "conflict_rate < warning_threshold - 0.1"
+            },
+            "recovery_notification": true
+        }
+    }
+}
