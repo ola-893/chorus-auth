@@ -59,7 +59,3 @@ The seeded demo is designed for a short sponsor-friendly walkthrough:
 - If the frontend cannot load data, confirm the backend is available at `http://localhost:8000`.
 - If realtime status shows `offline`, the dashboard will still work with manual refreshes and follow-up API reads.
 - If you want a clean demo state, restart with `SEED_ON_STARTUP=true ./run_frontend_demo.sh`.
-
-## Legacy Demos
-
-`./demo_scenarios.sh` still exists for the older immune-system experiments, but it is now a legacy menu and not part of the default sponsor demo path.

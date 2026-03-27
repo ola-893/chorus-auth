@@ -20,6 +20,6 @@ The active repository structure centers on the auth control plane MVP.
 - `src/demo/`: seeded demo data and smoke runner
 - `tests/control_plane/`: targeted control-plane smoke coverage
 
-## Legacy Layout
+## Repository Scope
 
-Older prediction-engine, Kafka, Datadog, and voice-related packages still exist in the repository, but they are not the default runtime path. Treat them as archived experiments unless a doc explicitly says otherwise.
+The active repository layout is intentionally narrow: control-plane backend services, the React dashboard, seeded demo tooling, and the current docs.

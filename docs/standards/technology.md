@@ -28,7 +28,3 @@
 - Token Vault-compatible access adapter
 - Gmail provider adapter
 - GitHub provider adapter
-
-## Out Of The Default Path
-
-Kafka, Datadog, and ElevenLabs remain in the repository only as historical or experimental integrations. They are not part of the active auth control plane MVP stack.

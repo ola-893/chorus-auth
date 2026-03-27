@@ -54,6 +54,6 @@ This is the active product direction reflected in the [Auth Control Plane spec](
 - Repeated violations escalate cleanly into quarantine.
 - The demo can be launched locally with a single documented command.
 
-## Legacy Context
+## Project Scope
 
-The older conflict-prediction and immune-system concepts are still useful as historical context for the risk and intervention language, but they are no longer the main product story for Chorus.
+The repository and docs now focus on the auth control plane MVP only.

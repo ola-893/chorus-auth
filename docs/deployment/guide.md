@@ -52,7 +52,6 @@ docker compose up --build
 Notes:
 
 - `SEED_ON_STARTUP=true` is enabled in the default backend service so the demo remains reproducible.
-- Kafka and Zookeeper remain available only behind the `legacy` profile for historical experiments.
 
 ## Live Integration Mode
 

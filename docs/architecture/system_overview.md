@@ -97,6 +97,6 @@ The seeded MVP creates:
 - `SEED_DEMO=true`
 - `SEED_ON_STARTUP=true` when launched by `run_frontend_demo.sh`
 
-## Legacy Context
+## Repository Scope
 
-The original immune-system prediction stack still exists in the repository, but it is now a legacy reference path. Kafka, Datadog, and ElevenLabs are not required for the auth control plane MVP and are intentionally removed from the default demo path.
+The repository now keeps only the auth control plane path and its supporting demo assets. The older prediction-engine, Kafka, Datadog, and voice-alert experiments have been removed from the active project tree.

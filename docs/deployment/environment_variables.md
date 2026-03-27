@@ -45,4 +45,3 @@ This document covers the active environment variables for the Chorus auth contro
 
 - In the default seeded demo, mock auth and mock vault behavior are enough to exercise the full approval and quarantine story.
 - If Redis is unavailable, the dashboard still functions; only live websocket fanout degrades.
-- Legacy variables for Kafka, Datadog, trust scoring, and voice alerts may still exist elsewhere in the repository for older experiments, but they are not part of the active auth control plane path.
