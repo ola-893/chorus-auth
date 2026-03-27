@@ -6,6 +6,7 @@ elevenlabs>=1.4              # Voice generation
 redis>=5.0                   # Local caching and trust score storage
 networkx>=3.2                # Causal graph analysis
 pydantic>=2.5                # Data validation
+pydantic-settings>=2.6       # Settings management
 fastapi>=0.104               # API layer
 uvicorn>=0.24                # ASGI server
 psutil>=5.9.0                # System and process monitoring

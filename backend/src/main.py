@@ -3,6 +3,7 @@ Main application entry point for the Chorus Agent Conflict Predictor.
 """
 import sys
 import argparse
+import os
 from typing import Optional
 
 from .config import Settings, load_settings
@@ -115,10 +116,34 @@ def run_api_mode(settings: Settings) -> int:
     """
     try:
         import uvicorn
+        agent_logger = get_agent_logger(__name__)
+        use_new_pipeline = os.getenv("USE_NEW_ACTION_PIPELINE", "true").lower() == "true"
+
+        if use_new_pipeline:
+            from .control_plane_app import create_app as create_control_plane_app
+
+            app = create_control_plane_app()
+            agent_logger.log_agent_action(
+                "INFO",
+                "Starting auth control plane API server",
+                action_type="control_plane_server_start",
+                context={
+                    "host": os.getenv("API_HOST", settings.api_host),
+                    "port": int(os.getenv("API_PORT", settings.api_port)),
+                    "workers": settings.api_workers,
+                },
+            )
+            uvicorn.run(
+                app,
+                host=os.getenv("API_HOST", settings.api_host),
+                port=int(os.getenv("API_PORT", settings.api_port)),
+                workers=settings.api_workers,
+                log_level=settings.logging.level.value.lower(),
+            )
+            return 0
+
         from fastapi import FastAPI
         from .api.main import create_app
-        
-        agent_logger = get_agent_logger(__name__)
         
         # Create lifecycle manager
         lifecycle_manager = SystemLifecycleManager(settings)

@@ -93,7 +93,7 @@ class ElevenLabsSettings(BaseSettings):
     api_key: Optional[str] = Field(default=None, description="ElevenLabs API key")
     voice_id: str = Field(default="21m00Tcm4TlvDq8ikWAM", description="Default voice ID")
     model_id: str = Field(default="eleven_turbo_v2", description="Model ID for generation")
-    enabled: bool = Field(default=True, description="Enable ElevenLabs integration")
+    enabled: bool = Field(default=False, description="Enable ElevenLabs integration")
     audio_storage_path: str = Field(default="./backend/alerts", description="Path to store audio files")
     max_audio_age_days: int = Field(default=1, description="Max age of audio files in days")
     
@@ -113,7 +113,7 @@ class KafkaSettings(BaseSettings):
     sasl_mechanism: Optional[str] = Field(default=None, description="SASL mechanism")
     sasl_username: Optional[str] = Field(default=None, description="SASL username")
     sasl_password: Optional[str] = Field(default=None, description="SASL password")
-    enabled: bool = Field(default=True, description="Enable Kafka integration")
+    enabled: bool = Field(default=False, description="Enable Kafka integration")
     buffer_size: int = Field(default=1000, description="Message buffer size for reconnections")
     
     @field_validator('buffer_size')

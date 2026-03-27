@@ -16,6 +16,7 @@ services:
     restart: unless-stopped
 
   zookeeper:
+    profiles: ["legacy"]
     image: confluentinc/cp-zookeeper:7.4.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -24,6 +25,7 @@ services:
       - "2181:2181"
 
   kafka:
+    profiles: ["legacy"]
     image: confluentinc/cp-kafka:7.4.0
     depends_on:
       - zookeeper
@@ -45,42 +47,28 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - CHORUS_REDIS_HOST=redis
-      - CHORUS_REDIS_PORT=6379
-      - CHORUS_ENVIRONMENT=development
-      - CHORUS_DEBUG=true
-      - CHORUS_LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./chorus.db
+      - USE_NEW_ACTION_PIPELINE=true
+      - USE_LEGACY_PIPELINE=false
+      - AUTH_MODE=mock
+      - VAULT_MODE=mock
+      - PROVIDER_MODE=mock
+      - SEED_DEMO=true
     depends_on:
       redis:
         condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./logs:/app/logs
-    command: uvicorn src.api.main:create_app --host 0.0.0.0 --port 8000 --reload --factory
+      - ./data:/app/data
+    command: uvicorn src.control_plane_app:create_app --host 0.0.0.0 --port 8000 --reload --factory
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  dashboard:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-      - REACT_APP_WS_URL=ws://localhost:8000
-    depends_on:
-      - backend
-    volumes:
-      - ../frontend/src:/app/src
-      - ../frontend/public:/app/public
-    command: npm start
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
