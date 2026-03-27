@@ -42,7 +42,7 @@ This starts the control plane with the seeded defaults and exposes the REST and 
 
 ## Docker Compose
 
-The default compose path runs Redis and the control-plane backend only.
+The default compose path runs the control-plane backend only.
 
 ```bash
 cd backend

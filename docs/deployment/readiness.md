@@ -7,7 +7,7 @@ Use this checklist before a demo, handoff, or review.
 - [ ] `backend/venv` exists and dependencies install cleanly
 - [ ] `frontend/node_modules` exists and `npm run build` passes
 - [ ] `DATABASE_URL` points to a writable location
-- [ ] Redis is reachable if you want live dashboard fanout
+- [ ] the backend exposes `/ws/dashboard` for live dashboard updates
 
 ## Demo State
 

@@ -1,27 +1,17 @@
-# Core dependencies for Chorus Agent Conflict Predictor
-google-genai>=1.0.0          # Unified Gen AI SDK for Gemini API
-confluent-kafka>=2.3         # Confluent integration
-datadog-api-client>=2.25     # Datadog metrics
-elevenlabs>=1.4              # Voice generation
-redis>=5.0                   # Local caching and trust score storage
-networkx>=3.2                # Causal graph analysis
-pydantic>=2.5                # Data validation
-pydantic-settings>=2.6       # Settings management
-SQLAlchemy>=2.0              # ORM and database access
-alembic>=1.13                # Database migrations
-fastapi>=0.104               # API layer
-uvicorn>=0.24                # ASGI server
-psutil>=5.9.0                # System and process monitoring
-python-dotenv>=1.0.0         # Environment variable management
+# Core runtime dependencies for the Chorus auth control plane
+fastapi>=0.104
+uvicorn>=0.24
+SQLAlchemy>=2.0
+alembic>=1.13
+pydantic>=2.5
+pydantic-settings>=2.6
+python-dotenv>=1.0.0
+google-genai>=1.0.0
 
-# Testing dependencies
-pytest>=7.4.0               # Testing framework
-pytest-asyncio>=0.21.0      # Async testing support
-pytest-mock>=3.11.0         # Mocking utilities
-hypothesis>=6.88.0          # Property-based testing
-coverage>=7.3.0             # Code coverage
+# Test dependencies
+pytest>=7.4.0
+httpx>=0.27.0
 
 # Development dependencies
-black>=23.9.0               # Code formatting
-flake8>=6.1.0               # Linting
-mypy>=1.6.0                 # Type checking
+black>=23.9.0
+mypy>=1.6.0

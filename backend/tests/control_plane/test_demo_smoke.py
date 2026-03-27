@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from src.control_plane_app import create_app
 from src.db.bootstrap import create_schema
 from src.db.session import SessionLocal
+from src.demo.smoke_runner import run_smoke
 from src.demo.seed import seed_demo_environment
 
 
@@ -120,3 +121,15 @@ def test_seeded_demo_flow_covers_allow_approval_and_quarantine() -> None:
         assert "approval.approved" in event_types
         assert "agent.quarantined" in event_types
 
+
+def test_smoke_runner_is_repeatable_across_multiple_runs() -> None:
+    first = run_smoke()
+    second = run_smoke()
+
+    assert first["allow_status"] == "completed"
+    assert first["first_block_status"] == "policy_blocked"
+    assert first["second_block_status"] == "quarantined"
+
+    assert second["allow_status"] == "completed"
+    assert second["first_block_status"] == "policy_blocked"
+    assert second["second_block_status"] == "quarantined"

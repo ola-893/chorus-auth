@@ -89,7 +89,7 @@ def create_app() -> FastAPI:
             "app_name": settings.app_name,
             "environment": settings.environment,
             "database_url": settings.database_url,
-            "redis_url": settings.redis_url,
+            "realtime_backend": "in-memory-websocket",
             "modes": settings.mode_summary(),
             "seed_on_startup": settings.seed_on_startup,
         }

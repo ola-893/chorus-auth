@@ -1,3 +1,3 @@
 """
-Chorus Agent Conflict Predictor - Source package.
+Chorus auth control plane source package.
 """

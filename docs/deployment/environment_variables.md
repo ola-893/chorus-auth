@@ -7,10 +7,9 @@ This document covers the active environment variables for the Chorus auth contro
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `ENVIRONMENT` | `development` | Runtime environment label exposed through health and meta endpoints. |
+| `API_HOST` | `0.0.0.0` | Host interface for the FastAPI server. |
+| `API_PORT` | `8000` | Port used by the FastAPI server. |
 | `DATABASE_URL` | `sqlite:///./data/chorus.db` | Primary relational store for users, agents, actions, approvals, and audit events. |
-| `REDIS_URL` | `redis://localhost:6379/0` | Optional Redis connection for live fanout and ephemeral coordination. |
-| `USE_NEW_ACTION_PIPELINE` | `true` | Enables the auth control plane runtime. |
-| `USE_LEGACY_PIPELINE` | `false` | Keeps the older prediction stack off the default path. |
 
 ## Demo Seeding
 
@@ -44,4 +43,4 @@ This document covers the active environment variables for the Chorus auth contro
 ## Notes
 
 - In the default seeded demo, mock auth and mock vault behavior are enough to exercise the full approval and quarantine story.
-- If Redis is unavailable, the dashboard still functions; only live websocket fanout degrades.
+- No separate broker or cache service is required for the default local demo path.

@@ -15,8 +15,8 @@
 ## Websocket status shows offline
 
 - The dashboard still works without live fanout, but it will rely on follow-up API reads.
-- Confirm Redis is reachable if you want the default live update path.
 - Confirm the backend exposes `/ws/dashboard`.
+- If you are proxying the backend, confirm the proxy allows websocket upgrades.
 
 ## Frontend dev server fails to start
 

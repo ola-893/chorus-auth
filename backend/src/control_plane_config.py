@@ -21,9 +21,6 @@ class ControlPlaneSettings(BaseSettings):
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=8000)
     database_url: str = Field(default="sqlite:///./data/chorus.db")
-    redis_url: str = Field(default="redis://localhost:6379/0")
-    use_new_action_pipeline: bool = Field(default=True)
-    use_legacy_pipeline: bool = Field(default=False)
     auth_mode: str = Field(default="mock")
     vault_mode: str = Field(default="mock")
     provider_mode: str = Field(default="mock")
@@ -45,8 +42,6 @@ class ControlPlaneSettings(BaseSettings):
             "auth_mode": self.auth_mode,
             "vault_mode": self.vault_mode,
             "provider_mode": self.provider_mode,
-            "use_new_action_pipeline": self.use_new_action_pipeline,
-            "use_legacy_pipeline": self.use_legacy_pipeline,
             "seed_demo": self.seed_demo,
         }
 

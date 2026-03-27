@@ -7,12 +7,12 @@ The auth control plane MVP favors clarity and reliability over speculative optim
 - Fast page hydration for the dashboard
 - Low-latency action request handling for mock provider flows
 - Predictable seeded demo startup
-- Safe fallback behavior when Redis or Gemini are unavailable
+- Safe fallback behavior when Gemini is unavailable
 
 ## Current Strategy
 
 - SQLite keeps the local persistence path simple and portable.
-- Redis is optional and only used for live fanout and short-lived coordination.
+- The in-process event broker keeps local websocket fanout simple.
 - Provider adapters are mock-first, so execution stays deterministic in demo mode.
 - The frontend refetches compact datasets instead of maintaining a complex client cache.
 

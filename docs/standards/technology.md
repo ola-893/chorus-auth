@@ -19,7 +19,7 @@
 ### Runtime Services
 
 - `SQLite`: default local database
-- `Redis`: optional live fanout and ephemeral coordination
+- `In-process WebSocket fanout`: default local realtime path
 - `Gemini`: optional contextual risk explanation
 
 ### Integration Seams

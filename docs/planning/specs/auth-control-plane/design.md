@@ -4,7 +4,7 @@
 
 This design refactors Chorus into a secure control plane for delegated AI actions. The new architecture preserves the useful intervention ideas from the legacy system but reorients them around authorization, enforcement, approval, and auditability rather than trust-score-driven swarm monitoring.
 
-The MVP favors a boring and demo-stable stack: FastAPI, SQLite, Redis, React, mock-first Auth0 and Token Vault adapters, and provider adapters for Gmail and GitHub. Kafka, Datadog, and ElevenLabs remain outside the default execution path.
+The MVP favors a boring and demo-stable stack: FastAPI, SQLite, React, mock-first Auth0 and Token Vault adapters, in-process WebSocket fanout, and provider adapters for Gmail and GitHub. Kafka, Datadog, and ElevenLabs remain outside the default execution path.
 
 ## Architecture
 
@@ -27,7 +27,7 @@ FastAPI Control Plane
     +--> Audit Timeline
     |
     +--> SQLite
-    +--> Redis
+    +--> In-Memory Event Stream
 ```
 
 ### Application Flow
@@ -311,6 +311,6 @@ Gemini may not:
 ## Operational Notes
 
 - SQLite is the default persisted store for local and demo mode.
-- Redis is used only for realtime fanout and ephemeral counters, not as the primary source of truth.
-- Legacy conflict prediction modules remain available only behind configuration flags during migration.
-- The new control plane should be the default app path for local development, docs, and demo scripts once the vertical slice is in place.
+- SQLite is the primary source of truth for the MVP.
+- Live dashboard updates use the app's in-process event stream and `/ws/dashboard`.
+- The auth control plane is the default and only supported local demo path in this repository.

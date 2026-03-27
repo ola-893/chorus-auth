@@ -9,7 +9,7 @@
 
 - [x] 2. Simplify runtime defaults
   - Remove Kafka, Datadog, and ElevenLabs from the default local and demo path
-  - Add config flags for the new control plane and legacy pipeline behavior
+  - Collapse the backend to a single auth control plane runtime path
   - Update compose and launch scripts to target the new MVP path by default
   - _Requirements: 11.3, 12.1, 12.2, 12.3_
 

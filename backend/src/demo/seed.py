@@ -3,7 +3,7 @@ Seed helpers for a repeatable auth control plane demo workspace.
 """
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..agents.service import ensure_capability_catalog
@@ -13,8 +13,13 @@ from ..db.models import (
     ActionRequest,
     Agent,
     AgentCapabilityGrant,
+    ApprovalDecision,
+    AuditEvent,
     Capability,
     ConnectedAccount,
+    ExecutionRecord,
+    QuarantineRecord,
+    RiskAssessment,
     User,
 )
 
@@ -113,6 +118,28 @@ def _upsert_demo_user(session: Session) -> User:
 
 
 def _reset_demo_runtime(session: Session, user: User) -> None:
+    agent_ids = select(Agent.id).where(Agent.owner_user_id == user.id)
+    action_ids = select(ActionRequest.id).where(ActionRequest.owner_user_id == user.id)
+
+    session.execute(
+        delete(AuditEvent).where(
+            AuditEvent.user_id == user.id,
+        )
+    )
+    session.execute(
+        delete(ApprovalDecision).where(ApprovalDecision.action_request_id.in_(action_ids))
+    )
+    session.execute(
+        delete(ExecutionRecord).where(ExecutionRecord.action_request_id.in_(action_ids))
+    )
+    session.execute(
+        delete(RiskAssessment).where(RiskAssessment.action_request_id.in_(action_ids))
+    )
+    session.execute(
+        delete(QuarantineRecord).where(QuarantineRecord.agent_id.in_(agent_ids))
+    )
+    session.execute(delete(ActionRequest).where(ActionRequest.owner_user_id == user.id))
+
     agents = session.scalars(
         select(Agent)
         .where(Agent.owner_user_id == user.id)
@@ -123,14 +150,6 @@ def _reset_demo_runtime(session: Session, user: User) -> None:
         agent.status = AgentStatus.ACTIVE
         agent.last_violation_at = None
         agent.quarantined_at = None
-        for quarantine in agent.quarantine_records:
-            session.delete(quarantine)
-
-    action_requests = session.scalars(
-        select(ActionRequest).where(ActionRequest.owner_user_id == user.id)
-    ).all()
-    for action_request in action_requests:
-        session.delete(action_request)
 
     session.flush()
 

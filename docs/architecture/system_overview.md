@@ -4,7 +4,7 @@
 
 Chorus is now a secure control plane for AI agents that act on behalf of users. The platform sits between agents and external providers, enforcing capability grants, evaluating risk, requesting human approval for sensitive actions, and recording a complete audit trail for every decision.
 
-The active MVP uses Gmail and GitHub demo adapters, SQLite for persisted state, Redis for optional live fanout, and a React dashboard that exposes accounts, permissions, approvals, actions, and quarantine state.
+The active MVP uses Gmail and GitHub demo adapters, SQLite for persisted state, in-process WebSocket fanout, and a React dashboard that exposes accounts, permissions, approvals, actions, and quarantine state.
 
 ## Primary Flow
 
@@ -89,8 +89,6 @@ The seeded MVP creates:
 
 ## Runtime Defaults
 
-- `USE_NEW_ACTION_PIPELINE=true`
-- `USE_LEGACY_PIPELINE=false`
 - `AUTH_MODE=mock`
 - `VAULT_MODE=mock`
 - `PROVIDER_MODE=mock`

@@ -3,52 +3,42 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chorus-agent-conflict-predictor"
+name = "chorus-auth-control-plane"
 version = "0.1.0"
-description = "Real-time conflict prediction and intervention for decentralized agent networks"
+description = "Secure authorization, approval, and audit control plane for delegated AI agent actions"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Chorus Team", email = "team@chorus.ai"}
 ]
 dependencies = [
-    "google-genai>=1.0.0",
-    "confluent-kafka>=2.3",
-    "datadog-api-client>=2.25",
-    "elevenlabs>=1.4",
-    "redis>=5.0",
-    "networkx>=3.2",
-    "pydantic>=2.5",
-    "pydantic-settings>=2.6",
-    "SQLAlchemy>=2.0",
-    "alembic>=1.13",
     "fastapi>=0.104",
     "uvicorn>=0.24",
+    "SQLAlchemy>=2.0",
+    "alembic>=1.13",
+    "pydantic>=2.5",
+    "pydantic-settings>=2.6",
+    "python-dotenv>=1.0.0",
+    "google-genai>=1.0.0",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-mock>=3.11.0",
-    "hypothesis>=6.88.0",
-    "coverage>=7.3.0",
+    "httpx>=0.27.0",
 ]
 dev = [
     "black>=23.9.0",
-    "flake8>=6.1.0",
     "mypy>=1.6.0",
 ]
 
-# Pytest configuration is in pytest.ini to avoid conflicts
-
 [tool.black]
 line-length = 88
-target-version = ['py39']
+target-version = ['py311']
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

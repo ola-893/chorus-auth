@@ -140,11 +140,11 @@ Refactor Chorus from a multi-agent conflict prediction system into a secure auth
 
 ### Requirement 12
 
-**User Story:** As a maintainer, I want the refactor to preserve a safe migration path, so that the new MVP can ship without breaking every legacy artifact at once.
+**User Story:** As a maintainer, I want the repository to expose one supported runtime path, so that the MVP stays easy to run, explain, and maintain.
 
 #### Acceptance Criteria
 
-1. WHEN the application boots THEN it SHALL support a configuration flag for the new action pipeline
-2. WHEN the legacy pipeline is disabled THEN the new control plane SHALL remain fully usable on its own
-3. WHEN legacy modules remain in the repository THEN they SHALL not be part of the default README or demo path
-4. WHEN new code is introduced THEN the implementation SHALL use SQLite for persisted MVP state and Redis only for ephemeral state or realtime fanout
+1. WHEN the application boots THEN it SHALL start the auth control plane directly without a legacy mode switch
+2. WHEN the demo is launched THEN Kafka, Datadog, ElevenLabs, and any external broker or cache SHALL not be required services
+3. WHEN obsolete prediction-era modules are removed THEN the default README, scripts, and compose path SHALL continue to work
+4. WHEN new code is introduced THEN the implementation SHALL use SQLite for persisted MVP state and the in-process websocket event stream for live dashboard updates
