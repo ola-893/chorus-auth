@@ -5,7 +5,6 @@ import { beginAuth0Login, clearStoredAccessToken, completeAuth0Callback, isDemoM
 import type {
   ActionDetail,
   ActionRequest,
-  Agent,
   ApprovalQueueItem,
   AuditEvent,
   AuthConfig,
