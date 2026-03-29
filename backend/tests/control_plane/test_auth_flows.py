@@ -61,6 +61,20 @@ def test_auth_session_reports_signed_out_when_bearer_is_missing(monkeypatch) -> 
     assert payload["user"] is None
 
 
+def test_auth_session_can_fall_back_to_demo_mode_when_enabled(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "auth_mode", "auth0")
+    monkeypatch.setattr(settings, "allow_demo_mode", True)
+
+    app = create_app()
+    with TestClient(app) as client:
+        session = client.get("/api/auth/session", headers={"x-chorus-demo-mode": "true"})
+
+    assert session.status_code == 200
+    payload = session.json()
+    assert payload["authenticated"] is True
+    assert payload["user"]["email"] == "demo@chorus.local"
+
+
 def test_auth0_bearer_token_is_verified_and_upserts_user(monkeypatch) -> None:
     create_schema()
     session = SessionLocal()

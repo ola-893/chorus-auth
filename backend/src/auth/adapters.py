@@ -12,6 +12,8 @@ from ..control_plane_config import settings
 from ..db.models import User
 from .jwt_verifier import jwt_verifier
 
+DEMO_MODE_HEADER = "x-chorus-demo-mode"
+
 
 @dataclass
 class ResolvedIdentity:
@@ -74,9 +76,16 @@ def get_auth_adapter() -> AuthAdapter:
     return MockAuthAdapter()
 
 
+def get_auth_adapter_for_request(request: Request) -> AuthAdapter:
+    """Return the configured adapter, honoring demo fallback when enabled."""
+    if settings.auth_mode == "auth0" and wants_demo_mode(request):
+        return MockAuthAdapter()
+    return get_auth_adapter()
+
+
 def resolve_or_create_user(session: Session, request: Request) -> User:
     """Resolve the current request identity and upsert the corresponding user."""
-    adapter = get_auth_adapter()
+    adapter = get_auth_adapter_for_request(request)
     identity = adapter.resolve_identity(request)
 
     user = session.scalar(select(User).where(User.auth_subject == identity.auth_subject))
@@ -124,3 +133,10 @@ def extract_bearer_token(request: Request) -> str | None:
     if not authorization.lower().startswith("bearer "):
         return None
     return authorization.split(" ", 1)[1].strip() or None
+
+
+def wants_demo_mode(request: Request) -> bool:
+    """Return whether the request explicitly asks for demo-mode auth fallback."""
+    if not settings.allow_demo_mode:
+        return False
+    return request.headers.get(DEMO_MODE_HEADER, "").lower() == "true"
