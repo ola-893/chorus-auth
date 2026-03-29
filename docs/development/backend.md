@@ -10,6 +10,7 @@ This app wires:
 
 - REST routes under `/api`
 - websocket updates under `/ws/dashboard`
+- CORS middleware driven by `CORS_ALLOWED_ORIGINS`
 - schema creation and reference seeding on startup
 - optional demo seeding for the mock MVP
 
@@ -27,6 +28,7 @@ This app wires:
 - `audit`: append-only event log
 - `providers`: Gmail and GitHub execution adapters
 - `demo`: seeded data and smoke runner
+- `dashboard`: summary metrics for the overview page
 
 ## Local Commands
 
@@ -41,6 +43,7 @@ Useful checks:
 ```bash
 venv/bin/python -m src.demo.smoke_runner
 venv/bin/python -m pytest -o addopts= tests/control_plane/test_demo_smoke.py
+venv/bin/python -m pytest -o addopts= tests/control_plane/test_auth_flows.py
 ```
 
 ## Request Flow
@@ -52,6 +55,13 @@ venv/bin/python -m pytest -o addopts= tests/control_plane/test_demo_smoke.py
 5. Map the result to allow, approval, block, or quarantine.
 6. Execute through the provider adapter only when permitted.
 7. Record audit events and publish dashboard updates.
+
+## Hosted Preview Notes
+
+- Postgres is supported through `DATABASE_URL=postgresql+psycopg://...`.
+- Browser origins are controlled through `CORS_ALLOWED_ORIGINS`.
+- The Auth0 SPA login flow lands on `/login/callback` in the frontend and the provider connection callback lands on `/connections`.
+- `/health` and `/api/meta` expose non-sensitive runtime state for preview diagnostics.
 
 ## Development Notes
 

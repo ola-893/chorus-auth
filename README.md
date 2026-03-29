@@ -1,8 +1,8 @@
 # Chorus Auth Control Plane
 
-**A secure control plane for delegated AI agent actions with scoped capabilities, approval workflows, and auditable execution.**
+**A secure control plane for delegated AI agent actions with scoped capabilities, approval workflows, live-capable integrations, and auditable execution.**
 
-Chorus now centers on one clear product story: users connect provider accounts, grant narrow capabilities to specialized agents, and route every agent action through policy, risk, approval, and audit controls before execution. The default MVP runs in mock mode with Gmail and GitHub adapters, SQLite persistence, in-process WebSocket fanout, and a fresh React dashboard.
+Chorus now centers on one clear product story: users connect provider accounts, grant narrow capabilities to specialized agents, and route every agent action through policy, risk, approval, and audit controls before execution. The default MVP runs in mock mode with Gmail and GitHub adapters, SQLite persistence, in-process WebSocket fanout, and a routed React dashboard with Auth0-ready login, live/mock connection handling, a guided demo page, and per-action detail drawers.
 
 ## What The Demo Shows
 
@@ -28,7 +28,7 @@ That flow demonstrates:
 ./run_frontend_demo.sh
 ```
 
-This starts the FastAPI control plane, seeds the mock demo workspace, and launches the Vite dashboard.
+This starts the FastAPI control plane, waits for a healthy backend, seeds the mock demo workspace, and launches the Vite dashboard with `VITE_API_BASE_URL` pointed at the local API.
 
 ### Smoke-check the seeded story
 
@@ -47,10 +47,20 @@ Expected outcomes:
 
 ## Core Architecture
 
-- **Frontend**: React dashboard for connected accounts, agent permissions, pending approvals, activity timeline, and quarantine state.
-- **Backend**: FastAPI control plane with bounded contexts for `auth`, `vault`, `connections`, `agents`, `policy`, `risk`, `enforcement`, `actions`, `approvals`, `audit`, and `providers`.
-- **Storage**: SQLite for persisted state plus a local in-process event stream for live dashboard updates.
+- **Frontend**: React app with `/login`, `/overview`, `/connections`, `/agents`, `/approvals`, `/activity`, and `/demo`.
+- **Backend**: FastAPI control plane with bounded contexts for `auth`, `vault`, `connections`, `agents`, `policy`, `risk`, `enforcement`, `actions`, `approvals`, `audit`, `dashboard`, `demo`, and `providers`.
+- **Storage**: SQLite for the local demo path and Postgres via `psycopg` for hosted previews or production-style deployments.
 - **Execution Model**: Agents request capabilities, not raw tokens. The backend evaluates policy and risk, retrieves provider access through the vault adapter, executes the action, and records the full trail.
+
+## Frontend Pages
+
+- `/login`: Auth0 entry, sign-in state, and local demo fallback.
+- `/overview`: judge-facing summary metrics, spotlighted protected action, and quick demo controls.
+- `/connections`: provider cards, granted scopes, connection health, and vault references.
+- `/agents`: registry, capability grant editor, quarantine state, and agent-specific history jumps.
+- `/approvals`: pending and resolved approval queues with direct approve/reject actions.
+- `/activity`: timeline, grouped action views, filters, and the action-detail drawer trigger.
+- `/demo`: guided story steps, scenario runner, environment readiness, and reset controls.
 
 ## Documentation
 
@@ -84,6 +94,8 @@ Expected outcomes:
 - `PROVIDER_MODE=mock`
 - `SEED_DEMO=true`
 - `SEED_ON_STARTUP=true`
+- `ALLOW_DEMO_MODE=true`
+- `CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173`
 
 ## Repository Scope
 
