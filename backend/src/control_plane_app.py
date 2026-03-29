@@ -35,12 +35,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ],
+        allow_origins=settings.cors_allowed_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -94,6 +89,7 @@ def create_app() -> FastAPI:
             "environment": settings.environment,
             "database_url": settings.database_url,
             "realtime_backend": "in-memory-websocket",
+            "cors_allowed_origins": settings.cors_allowed_origins(),
             "modes": settings.mode_summary(),
             "seed_on_startup": settings.seed_on_startup,
         }

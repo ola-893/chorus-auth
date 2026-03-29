@@ -22,13 +22,25 @@ echo "Launching backend control plane..."
 cd "$BACKEND_DIR"
 source venv/bin/activate
 export PYTHONPATH="$BACKEND_DIR"
+export CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173}
 export SEED_DEMO=${SEED_DEMO:-true}
 export SEED_ON_STARTUP=${SEED_ON_STARTUP:-true}
+export ALLOW_DEMO_MODE=${ALLOW_DEMO_MODE:-true}
 uvicorn src.control_plane_app:create_app --host 0.0.0.0 --port 8000 --reload --factory &
 BACKEND_PID=$!
 
 echo "Waiting for backend to initialize..."
-sleep 5
+for _ in $(seq 1 30); do
+    if python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=1)" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
+if ! python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=1)" >/dev/null 2>&1; then
+    echo "Backend failed to become healthy"
+    exit 1
+fi
 
 if [ -f "$FRONTEND_DIR/package.json" ]; then
     if ! command -v npm &> /dev/null; then
@@ -38,6 +50,7 @@ if [ -f "$FRONTEND_DIR/package.json" ]; then
 
     echo "Starting frontend dashboard..."
     cd "$FRONTEND_DIR"
+    export VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000}
     if [ ! -d "node_modules" ]; then
         echo "Installing frontend dependencies..."
         npm install

@@ -137,3 +137,20 @@ def test_auth_config_exposes_frontend_bootstrap_fields(monkeypatch) -> None:
     assert payload["auth0_client_id"] == "client_123"
     assert payload["auth0_issuer"] == "https://tenant.us.auth0.com/"
     assert payload["callback_path"] == "/login/callback"
+
+
+def test_cors_allows_configured_hosted_preview_origin(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "cors_allowed_origins_csv", "https://preview.chorus.example,https://chorus.example")
+
+    app = create_app()
+    with TestClient(app) as client:
+        response = client.options(
+            "/api/auth/config",
+            headers={
+                "Origin": "https://preview.chorus.example",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://preview.chorus.example"

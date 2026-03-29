@@ -2,6 +2,7 @@
 fastapi>=0.104
 uvicorn>=0.24
 SQLAlchemy>=2.0
+psycopg[binary]>=3.2
 alembic>=1.13
 pydantic>=2.5
 pydantic-settings>=2.6
